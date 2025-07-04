@@ -186,158 +186,108 @@ RETURN
     Result
 ```
 
-&nbsp;Chapter 6,7,8,9 - 14.1 = 
+### Chapter 6,7,8,9 - 14.1
 
-// Cách 1:
-
+**Cách 1:**
+```dax
 // COUNTROWS(
-
 //     FILTER(
-
 //         CALCULATETABLE(
-
-//             VALUES(Store\[StoreKey]),
-
-//             Store\[Status] = "" 
-
+//             VALUES(Store[StoreKey]),
+//             Store[Status] = "" 
 //         ),
-
-//         \[Sales Amount] > 700
-
+//         [Sales Amount] > 700
 //     )
-
 // )
+```
 
-
-
-// Cách 2:
-
+**Cách 2:**
+```dax
 CALCULATE(
-
-&nbsp;   // \[#Number Of Store],
-
-&nbsp;   COUNTROWS(Store),
-
-&nbsp;   FILTER(
-
-&nbsp;       VALUES(Store\[StoreKey]),
-
-&nbsp;       \[Sales Amount] > 700
-
-&nbsp;   ),
-
-&nbsp;   Store\[Status] = "" 
-
+    // [#Number Of Store],
+    COUNTROWS(Store),
+    FILTER(
+        VALUES(Store[StoreKey]),
+        [Sales Amount] > 700
+    ),
+    Store[Status] = "" 
 )
+```
 
+---
 
+### Chapter 6,7,8,9 - 14.2
 
-
-
-Chapter 6,7,8,9 - 14.2 = 
-
+```dax
 DIVIDE(
-
-&nbsp;   \[Chapter 6,7,8,9 - 14.1],
-
-&nbsp;   CALCULATE(
-
-&nbsp;       \[#Number Of Store],
-
-&nbsp;       Store\[Status] = ""
-
-&nbsp;   )
-
+    [Chapter 6,7,8,9 - 14.1],
+    CALCULATE(
+        [#Number Of Store],
+        Store[Status] = ""
+    )
 )
+```
 
+---
 
+### Chapter 6,7,8,9 - 15.1
 
-
-
-Chapter 6,7,8,9 - 15.1 = 
-
-VAR CurrentYear = MAX('Date'\[Year])
-
+```dax
+VAR CurrentYear = MAX('Date'[Year])
 RETURN
+    CALCULATE(
+        [#Revenue],
+        'Date'[Year] <= CurrentYear
+    )
+```
 
-&nbsp;   CALCULATE(
+---
 
-&nbsp;       \[#Revenue],
+### Chapter 6,7,8,9 - 15.1 - Fix
 
-&nbsp;       'Date'\[Year] <= CurrentYear
-
-&nbsp;   )
-
-
-
-
-
-Chapter 6,7,8,9 - 15.1 - Fix = 
-
-VAR MinYear = MIN('Date'\[Year])
-
-VAR MaxYear = MAX('Date'\[Year])
-
-VAR CurrentYearViz = MAX('DateViz'\[Year])
+```dax
+VAR MinYear = MIN('Date'[Year])
+VAR MaxYear = MAX('Date'[Year])
+VAR CurrentYearViz = MAX('DateViz'[Year])
 
 VAR Result =
-
-&nbsp;   IF(
-
-&nbsp;       CurrentYearViz >= MinYear \&\& CurrentYearViz <= MaxYear,
-
-&nbsp;       CALCULATE(
-
-&nbsp;           \[#Revenue],
-
-&nbsp;           'Date'\[Year] <= CurrentYearViz
-
-&nbsp;       )
-
-&nbsp;   )
+    IF(
+        CurrentYearViz >= MinYear && CurrentYearViz <= MaxYear,
+        CALCULATE(
+            [#Revenue],
+            'Date'[Year] <= CurrentYearViz
+        )
+    )
 
 RETURN
+    Result
+```
 
-&nbsp;   Result
+---
 
-&nbsp;  
+### Chapter 6,7,8,9 - 15.2
 
-Chapter 6,7,8,9 - 15.2 = 
-
-VAR CurrentYear = MAX('Date'\[Year])
-
+```dax
+VAR CurrentYear = MAX('Date'[Year])
 RETURN
+    CALCULATE(
+        [#Profit],
+        'Date'[Year] <= CurrentYear
+    )
+```
 
-&nbsp;   CALCULATE(
+---
 
-&nbsp;       \[#Profit],
+### Chapter 6,7,8,9 - 15.3
 
-&nbsp;       'Date'\[Year] <= CurrentYear
-
-&nbsp;   )
-
-
-
-Chapter 6,7,8,9 - 15.3 = 
-
-VAR CurrentYear = MAX('Date'\[Year])
-
+```dax
+VAR CurrentYear = MAX('Date'[Year])
 RETURN
-
-&nbsp;   CALCULATE(
-
-&nbsp;       \[#Number Of Customer],
-
-&nbsp;       'Date'\[Year] <= CurrentYear
-
-&nbsp;   )
-
-
-
-
-
-
-
+    CALCULATE(
+        [#Number Of Customer],
+        'Date'[Year] <= CurrentYear
+    )
+```
 
 
 Chapter 6,7,8,9 - 17 - Cách 1 = 
