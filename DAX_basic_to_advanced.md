@@ -1212,5 +1212,214 @@ VAR Result =
 RETURN
     Result
 ```
+### 15.1.3. Bài tập Phần 3
+``` dax
+Cau 1 = 
+-- Added Question: Số Sales trong 2 năm của các sản phẩm bán trong năm 2007, 2009 >= 20000
+VAR ListYearCondition = {2007,2009}
+RETURN
+    COUNTROWS(
+        CALCULATETABLE(
+            FILTER(
+                VALUES('Product'[ProductKey]),
+                VAR SalesYear = 
+                    COUNTROWS(
+                        INTERSECT(
+                            CALCULATETABLE(SUMMARIZE(Sales,'Date'[Calendar Year Number])),
+                            ListYearCondition
+                        )
+                    ) 
+                VAR SalesTwoYear = 
+                    CALCULATE(
+                        [Sales Amount],
+                        TREATAS(ListYearCondition,'Date'[Calendar Year Number])
+                    )
+                RETURN
+                    SalesYear = 2 && SalesTwoYear >= 20000
+            ),
+            ALL('Date')
+        )
+    )
+```
+``` dax
+Cau 2 - Phan 3 = 
+VAR ListYearCondition = {2007,2009}
+VAR ListProduct = 
+    CALCULATETABLE(
+        FILTER(
+            VALUES('Product'[ProductKey]),
+            VAR SalesYear = 
+                COUNTROWS(
+                    INTERSECT(
+                        CALCULATETABLE(SUMMARIZE(Sales,'Date'[Calendar Year Number])),
+                        ListYearCondition
+                    )
+                ) 
+                
+            RETURN
+                SalesYear = 2
+        ),
+        ALL('Date')
+    )
 
+RETURN
+    CALCULATE(
+        [Sales Amount],
+        // TREATAS(ListProduct,'Product'[ProductKey])
+        ListProduct
+    )
+```
+``` dax
+Cau 3 - Phan 3 = 
+VAR ListYearCondition = {2007,2009}
+VAR ListProduct = 
+    CALCULATETABLE(
+        FILTER(
+            VALUES('Product'[ProductKey]),
+            VAR _ListYear = CALCULATETABLE(SUMMARIZE(Sales,'Date'[Calendar Year Number]))
+            
+            VAR FirstCondition = 
+                COUNTROWS(FILTER(_ListYear,[Calendar Year Number] = 2007)) = 1
+                
+            VAR SecondCondition = 
+                 COUNTROWS(FILTER(_ListYear,[Calendar Year Number] = 2009)) = 0
+            RETURN
+                AND(FirstCondition,SecondCondition)
+        ),
+        ALL('Date')
+    )
+
+RETURN
+    COUNTROWS(ListProduct)
+```
+``` dax
+Cau 4 - Phan 3 = 
+VAR ListYearCondition = {2007,2009}
+VAR ListProduct = 
+    CALCULATETABLE(
+        FILTER(
+            VALUES('Product'[ProductKey]),
+            VAR _ListYear = CALCULATETABLE(SUMMARIZE(Sales,'Date'[Calendar Year Number]))
+            
+            VAR FirstCondition = 
+                COUNTROWS(FILTER(_ListYear,[Calendar Year Number] = 2007)) = 1
+                
+            VAR SecondCondition = 
+                 COUNTROWS(FILTER(_ListYear,[Calendar Year Number] = 2009)) = 0
+            RETURN
+                AND(FirstCondition,SecondCondition)
+        ),
+        ALL('Date')
+    )
+
+RETURN
+    SUMX(ListProduct,[Sales Amount])
+```
+``` dax
+Cau 5 - Phan 3 = 
+VAR ListYearCondition = {2007,2008,2009}
+RETURN
+    COUNTROWS(
+        CALCULATETABLE(
+            FILTER(
+                VALUES('Sales'[ProductKey]),
+                COUNTROWS(
+                    CALCULATETABLE(SUMMARIZE(Sales,'Date'[Calendar Year Number]))
+                ) = 3
+            ),
+            ALL('Date'),
+            TREATAS(ListYearCondition,'Date'[Calendar Year Number])
+        )
+    )
+```
+``` dax
+Cau 7.1 - Phan 3 = 
+VAR ListProduct = 
+    CALCULATETABLE(
+        FILTER(
+            VALUES(Sales[CustomerKey]),
+            COUNTROWS(CALCULATETABLE(SUMMARIZE(Sales,Promotion[Promotion Category]))) = 2
+        ),
+        ALL('Date'),
+        'Date'[Calendar Year Number] IN {2007,2008}
+    )
+RETURN
+    COUNTROWS(ListProduct)
+```
+``` dax
+Cau 7.2 - Phan 3 = 
+VAR ListCondition = {2007,2008}
+VAR ListProduct = 
+    CALCULATETABLE(
+        FILTER(
+            VALUES(Sales[CustomerKey]),
+            VAR _ListYear = 
+                FILTER(
+                    CALCULATETABLE(SUMMARIZE(Sales,'Date'[Calendar Year Number])),
+                    CALCULATE(COUNTROWS(SUMMARIZE(Sales,Promotion[Promotion Category]))) = 2
+                )
+            RETURN
+                COUNTROWS(_ListYear) = COUNTROWS(ListCondition)
+        ),
+        ALL('Date'),
+        'Date'[Calendar Year Number] IN {2007,2008}
+    )
+RETURN
+    COUNTROWS(ListProduct)
+```
+``` dax
+Cau 8.1 - Phan 3 = 
+VAR ListProduct = 
+    CALCULATETABLE(
+        FILTER(
+            VALUES(Sales[CustomerKey]),
+            COUNTROWS(CALCULATETABLE(SUMMARIZE(Sales,Promotion[Promotion Category]))) = 2
+        ),
+        ALL('Date'),
+        'Date'[Calendar Year Number] IN {2007,2008}
+    )
+RETURN
+    SUMX(ListProduct, [Sales Amount])
+```
+``` dax
+Cau 8.2 - Phan 3 = 
+VAR ListCondition = {2007,2008}
+VAR ListProduct = 
+    CALCULATETABLE(
+        FILTER(
+            VALUES(Sales[CustomerKey]),
+            VAR _ListYear = 
+                FILTER(
+                    CALCULATETABLE(SUMMARIZE(Sales,'Date'[Calendar Year Number])),
+                    CALCULATE(COUNTROWS(SUMMARIZE(Sales,Promotion[Promotion Category]))) = 2
+                )
+            RETURN
+                COUNTROWS(_ListYear) = COUNTROWS(ListCondition)
+        ),
+        ALL('Date'),
+        'Date'[Calendar Year Number] IN {2007,2008}
+    )
+RETURN
+    SUMX(ListProduct, [Sales Amount])
+```
+### 15.2. Bài tập Chương 11
+``` dax
+Chapter 11 - Cau 1 = 
+VAR Top5Customer = 
+    CALCULATETABLE(
+        TOPN(5,VALUES(Sales[CustomerKey]),[Sales Amount],DESC),
+        ALL('Date'),
+        INDEX(
+            1,
+            CALCULATETABLE(VALUES('Date'[Year]),ALL('Date'),'Date'[IsTransaction] = TRUE()),
+            ORDERBY([Year],ASC)
+        )
+    )
+RETURN
+    // CALCULATE(
+    //     [Sales Amount],
+    //     TREATAS(Top5Customer,Sales[CustomerKey])
+    // )
+    SUMX(Top5Customer,[Sales Amount])
+```
 
