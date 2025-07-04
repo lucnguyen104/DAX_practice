@@ -290,106 +290,104 @@ RETURN
 ```
 
 
-Chapter 6,7,8,9 - 17 - Cách 1 = 
+### Chapter 6,7,8,9 - 17 - Cách 1 = 
 
+```dax
 VAR ListCustomer = 
 
-&nbsp;   ADDCOLUMNS(
+   ADDCOLUMNS(
 
-&nbsp;       SUMMARIZE(Sales, Customer\[CustomerKey]),
+      SUMMARIZE(Sales, Customer\[CustomerKey]),
 
-&nbsp;       "@NumberOfNonSalesMonth",
+      "@NumberOfNonSalesMonth",
 
-&nbsp;       VAR ListSalesMonth = 
+      VAR ListSalesMonth = 
 
-&nbsp;           CALCULATETABLE(
+           CALCULATETABLE(
 
-&nbsp;               FILTER(
+               FILTER(
 
-&nbsp;                   SUMMARIZE(Sales,'Date'\[Year Month Number]),
+                   SUMMARIZE(Sales,'Date'\[Year Month Number]),
 
-&nbsp;                   \[Sales Amount] > 0
+                   \[Sales Amount] > 0
 
-&nbsp;               )
+               )
 
-&nbsp;           )
+           )
 
-&nbsp;       VAR AllMonth = 
+       VAR AllMonth = 
 
-&nbsp;           VALUES('Date'\[Year Month Number])
+           VALUES('Date'\[Year Month Number])
 
-&nbsp;       VAR NonSalesMonth = 
+       VAR NonSalesMonth = 
 
-&nbsp;           EXCEPT(AllMonth,ListSalesMonth)
+           EXCEPT(AllMonth,ListSalesMonth)
 
-&nbsp;       RETURN
+       RETURN
 
-&nbsp;           COUNTROWS(NonSalesMonth)
+           COUNTROWS(NonSalesMonth)
 
-&nbsp;   )
+   )
 
 RETURN
 
-&nbsp;   // CONCATENATEX(
+   // CONCATENATEX(
 
-&nbsp;   //     DISTINCT(SELECTCOLUMNS(ListCustomer,"Month",\[@NumberOfNonSalesMonth])),
+   //     DISTINCT(SELECTCOLUMNS(ListCustomer,"Month",\[@NumberOfNonSalesMonth])),
 
-&nbsp;   //     \[Month],", "
+   //     \[Month],", "
 
-&nbsp;   // )
+   // )
 
-&nbsp;   SUMX(ListCustomer,\[@NumberOfNonSalesMonth])
+   SUMX(ListCustomer,\[@NumberOfNonSalesMonth])
 
-&nbsp;   
+   
 
-&nbsp;  
-
-
-
+  
+```
 
 
-Chapter 6,7,8,9 - 17 - Cách 2 = 
 
+
+### Chapter 6,7,8,9 - 17 - Cách 2 = 
+
+```dax
 VAR ListCustomer = 
 
-&nbsp;   ADDCOLUMNS(
+   ADDCOLUMNS(
 
-&nbsp;       SUMMARIZE(Sales, Customer\[CustomerKey]),
+       SUMMARIZE(Sales, Customer\[CustomerKey]),
 
-&nbsp;       "@NumberOfNonSalesMonth",
+       "@NumberOfNonSalesMonth",
 
-&nbsp;  
+  
 
-&nbsp;       COUNTROWS(
+       COUNTROWS(
 
-&nbsp;           FILTER(
+           FILTER(
 
-&nbsp;               VALUES('Date'\[Year Month Number]),
+               VALUES('Date'\[Year Month Number]),
 
-&nbsp;               ISBLANK(\[Sales Amount]) || \[Sales Amount] <= 0
+               ISBLANK(\[Sales Amount]) || \[Sales Amount] <= 0
 
-&nbsp;           )
+           )
 
-&nbsp;       )
+       )
 
-
-
-&nbsp;
-
-&nbsp;   )
+   )
 
 RETURN
 
-&nbsp;   // CONCATENATEX(
+   // CONCATENATEX(
 
-&nbsp;   //     DISTINCT(SELECTCOLUMNS(ListCustomer,"Month",\[@NumberOfNonSalesMonth])),
+   //     DISTINCT(SELECTCOLUMNS(ListCustomer,"Month",\[@NumberOfNonSalesMonth])),
 
-&nbsp;   //     \[Month],", "
+   //     \[Month],", "
 
-&nbsp;   // )
+   // )
 
-&nbsp;   SUMX(ListCustomer,\[@NumberOfNonSalesMonth])
-
+   SUMX(ListCustomer,\[@NumberOfNonSalesMonth])
+```
 
 
 
@@ -400,51 +398,51 @@ Chapter 6,7,8,9 - 17.2 =
 
 VAR ListCustomer = 
 
-&nbsp;   ADDCOLUMNS(
+   ADDCOLUMNS(
 
-&nbsp;       SUMMARIZE(Sales, Customer\[CustomerKey]),
+       SUMMARIZE(Sales, Customer\[CustomerKey]),
 
-&nbsp;       "@NumberOfNonSalesMonth",
+       "@NumberOfNonSalesMonth",
 
-&nbsp;  
+  
 
-&nbsp;       COUNTROWS(
+       COUNTROWS(
 
-&nbsp;           FILTER(
+           FILTER(
 
-&nbsp;               VALUES('Date'\[Year Month Number]),
+               VALUES('Date'\[Year Month Number]),
 
-&nbsp;               ISBLANK(\[Sales Amount]) || \[Sales Amount] <= 0
+               ISBLANK(\[Sales Amount]) || \[Sales Amount] <= 0
 
-&nbsp;           )
+           )
 
-&nbsp;       )
+       )
 
 
 
-&nbsp;
 
-&nbsp;   )
+
+   )
 
 RETURN
 
-&nbsp;   DIVIDE(
+   DIVIDE(
 
-&nbsp;       SUMX(ListCustomer,\[@NumberOfNonSalesMonth]),
+       SUMX(ListCustomer,\[@NumberOfNonSalesMonth]),
 
-&nbsp;       COUNTROWS(
+       COUNTROWS(
 
-&nbsp;           FILTER(
+           FILTER(
 
-&nbsp;               ListCustomer,
+               ListCustomer,
 
-&nbsp;               \[@NumberOfNonSalesMonth] > 0
+               \[@NumberOfNonSalesMonth] > 0
 
-&nbsp;           )
+           )
 
-&nbsp;       )
+       )
 
-&nbsp;   )
+   )
 
 
 
@@ -458,27 +456,27 @@ Chapter 10: Các hàm bảng trong DAX
 
 DEFINE 
 
-&nbsp;	VAR A =
+	VAR A =
 
-&nbsp;		SUMMARIZE(Sales,'Product'\[Category],'Date'\[Year])
+		SUMMARIZE(Sales,'Product'\[Category],'Date'\[Year])
 
 
 
-&nbsp;	VAR B = 
+	VAR B = 
 
-&nbsp;		ADDCOLUMNS(
+		ADDCOLUMNS(
 
-&nbsp;			A, 
+			A, 
 
-&nbsp;			"@Sales",
+			"@Sales",
 
-&nbsp;			\[Sales Amount],
+			\[Sales Amount],
 
-&nbsp;			"@Sales1",
+			"@Sales1",
 
-&nbsp;			CALCULATE(SUMX(Sales,\[Net Price]\*\[Quantity]))
+			CALCULATE(SUMX(Sales,\[Net Price]\*\[Quantity]))
 
-&nbsp;		)
+		)
 
 
 
@@ -496,31 +494,31 @@ EVALUATE B
 
 DEFINE 
 
-&nbsp;	VAR A =
+	VAR A =
 
-&nbsp;		SUMMARIZE(Sales,'Product'\[Category],'Date'\[Year])
+		SUMMARIZE(Sales,'Product'\[Category],'Date'\[Year])
 
 
 
-&nbsp;	VAR B = 
+	VAR B = 
 
-&nbsp;		ADDCOLUMNS(
+		ADDCOLUMNS(
 
-&nbsp;			A, 
+			A, 
 
-&nbsp;			"@Sales",
+			"@Sales",
 
-&nbsp;			\[Sales Amount],
+			\[Sales Amount],
 
-&nbsp;			"@AvgSalesPerMonth",
+			"@AvgSalesPerMonth",
 
-&nbsp;			AVERAGEX(VALUES('Date'\[Month]),\[Sales Amount]),
+			AVERAGEX(VALUES('Date'\[Month]),\[Sales Amount]),
 
-&nbsp;			"NumberOfMonth",
+			"NumberOfMonth",
 
-&nbsp;			CALCULATE(COUNTROWS(SUMMARIZE(Sales,'Date'\[Month])))
+			CALCULATE(COUNTROWS(SUMMARIZE(Sales,'Date'\[Month])))
 
-&nbsp;		)
+		)
 
 
 
@@ -534,11 +532,11 @@ EVALUATE B
 
 DEFINE 
 
-&nbsp;	VAR A = 
+	VAR A = 
 
-&nbsp;		SUMMARIZE(Sales,'Store'\[Country],'Date'\[Year])
+		SUMMARIZE(Sales,'Store'\[Country],'Date'\[Year])
 
-&nbsp;		
+		
 
 EVALUATE A
 
@@ -552,43 +550,43 @@ EVALUATE A
 
 DEFINE 
 
-&nbsp;	VAR A = 
+	VAR A = 
 
-&nbsp;		SUMMARIZE(Sales,'Store'\[Country],'Date'\[Year])
+		SUMMARIZE(Sales,'Store'\[Country],'Date'\[Year])
 
-&nbsp;		
+		
 
-&nbsp;	VAR B = 
+	VAR B = 
 
-&nbsp;		ADDCOLUMNS(
+		ADDCOLUMNS(
 
-&nbsp;			A,
+			A,
 
-&nbsp;			"ProductNoSales",
+			"ProductNoSales",
 
-&nbsp;			COUNTROWS(
+			COUNTROWS(
 
-&nbsp;				FILTER(
+				FILTER(
 
-&nbsp;					VALUES('Product'\[ProductKey]),
+					VALUES('Product'\[ProductKey]),
 
-&nbsp;					ISBLANK(\[Sales Amount])
+					ISBLANK(\[Sales Amount])
 
-&nbsp;				)
+				)
 
-&nbsp;			),
+			),
 
-&nbsp;			"ProductSales",
+			"ProductSales",
 
-&nbsp;			CALCULATE(DISTINCTCOUNT(Sales\[ProductKey])),
+			CALCULATE(DISTINCTCOUNT(Sales\[ProductKey])),
 
-&nbsp;			"Total Product",
+			"Total Product",
 
-&nbsp;			DISTINCTCOUNT(Sales\[ProductKey])
+			DISTINCTCOUNT(Sales\[ProductKey])
 
-&nbsp;		)
+		)
 
-&nbsp;		
+		
 
 EVALUATE B
 
@@ -600,59 +598,59 @@ EVALUATE B
 
 DEFINE 
 
-&nbsp;	MEASURE 'All Meaasures'\[New Customer] = 
+	MEASURE 'All Meaasures'\[New Customer] = 
 
-&nbsp;		VAR ListCustomer = 
+		VAR ListCustomer = 
 
-&nbsp;			CALCULATETABLE(
+			CALCULATETABLE(
 
-&nbsp;				ADDCOLUMNS(
+				ADDCOLUMNS(
 
-&nbsp;					VALUES('Customer'\[CustomerKey]),
+					VALUES('Customer'\[CustomerKey]),
 
-&nbsp;					"@FirstYear",
+					"@FirstYear",
 
-&nbsp;					YEAR(CALCULATE(MIN('Sales'\[Order Date])))
+					YEAR(CALCULATE(MIN('Sales'\[Order Date])))
 
-&nbsp;				),
+				),
 
-&nbsp;				ALL('Date')
+				ALL('Date')
 
-&nbsp;			)
+			)
 
-&nbsp;		RETURN
+		RETURN
 
-&nbsp;			COUNTROWS(FILTER(ListCustomer,\[@FirstYear] IN VALUES('Date'\[Year])))
+			COUNTROWS(FILTER(ListCustomer,\[@FirstYear] IN VALUES('Date'\[Year])))
 
-&nbsp;		
+		
 
-&nbsp;	VAR A = 
+	VAR A = 
 
-&nbsp;		SUMMARIZE(Sales,'Store'\[Country], 'Product'\[Category],'Date'\[Year])
+		SUMMARIZE(Sales,'Store'\[Country], 'Product'\[Category],'Date'\[Year])
 
-&nbsp;		
+		
 
-&nbsp;	VAR B = 
+	VAR B = 
 
-&nbsp;		ADDCOLUMNS(
+		ADDCOLUMNS(
 
-&nbsp;			A,
+			A,
 
-&nbsp;			"New Customer",
+			"New Customer",
 
-&nbsp;			\[New Customer],
+			\[New Customer],
 
-&nbsp;			"%Growth New Customer",
+			"%Growth New Customer",
 
-&nbsp;			VAR CurrYr = \[Year]
+			VAR CurrYr = \[Year]
 
-&nbsp;			VAR PrevNew = CALCULATE(\[New Customer], 'Date'\[Year] = CurrYr-1)
+			VAR PrevNew = CALCULATE(\[New Customer], 'Date'\[Year] = CurrYr-1)
 
-&nbsp;			RETURN
+			RETURN
 
-&nbsp;               FORMAT(DIVIDE(\[New Customer]-PrevNew,PrevNew),"#%")
+               FORMAT(DIVIDE(\[New Customer]-PrevNew,PrevNew),"#%")
 
-&nbsp;		)
+		)
 
 
 
@@ -680,151 +678,151 @@ EVALUATE B
 
 DEFINE 
 
-&nbsp;	MEASURE 'All Meaasures'\[New Customer] = 
+	MEASURE 'All Meaasures'\[New Customer] = 
 
-&nbsp;		VAR ListCustomer = 
+		VAR ListCustomer = 
 
-&nbsp;			CALCULATETABLE(
+			CALCULATETABLE(
 
-&nbsp;				ADDCOLUMNS(
+				ADDCOLUMNS(
 
-&nbsp;					VALUES('Customer'\[CustomerKey]),
+					VALUES('Customer'\[CustomerKey]),
 
-&nbsp;					"@FirstYear",
+					"@FirstYear",
 
-&nbsp;					YEAR(CALCULATE(MIN('Sales'\[Order Date])))
+					YEAR(CALCULATE(MIN('Sales'\[Order Date])))
 
-&nbsp;				),
+				),
 
-&nbsp;				ALL('Date')
+				ALL('Date')
 
-&nbsp;			)
+			)
 
-&nbsp;		RETURN
+		RETURN
 
-&nbsp;			COUNTROWS(FILTER(ListCustomer,\[@FirstYear] IN VALUES('Date'\[Year])))
+			COUNTROWS(FILTER(ListCustomer,\[@FirstYear] IN VALUES('Date'\[Year])))
 
-&nbsp;		
+		
 
-&nbsp;	VAR A = 
+	VAR A = 
 
-&nbsp;		SUMMARIZE(Sales,'Store'\[Country], 'Product'\[Category],'Date'\[Year])
+		SUMMARIZE(Sales,'Store'\[Country], 'Product'\[Category],'Date'\[Year])
 
-&nbsp;		
+		
 
-&nbsp;	VAR B = 
+	VAR B = 
 
-&nbsp;		ADDCOLUMNS(
+		ADDCOLUMNS(
 
-&nbsp;			A,
+			A,
 
-&nbsp;			"Sales Amount",\[Sales Amount],
+			"Sales Amount",\[Sales Amount],
 
-&nbsp;			"New Customer",
+			"New Customer",
 
-&nbsp;			\[New Customer],
+			\[New Customer],
 
-&nbsp;			"%Growth New Customer",
+			"%Growth New Customer",
 
-&nbsp;			VAR CurrYr = \[Year]
+			VAR CurrYr = \[Year]
 
-&nbsp;			VAR PrevNew = CALCULATE(\[New Customer], 'Date'\[Year] = CurrYr-1)
+			VAR PrevNew = CALCULATE(\[New Customer], 'Date'\[Year] = CurrYr-1)
 
-&nbsp;			RETURN
+			RETURN
 
-&nbsp;               FORMAT(DIVIDE(\[New Customer]-PrevNew,PrevNew),"#%"),
+               FORMAT(DIVIDE(\[New Customer]-PrevNew,PrevNew),"#%"),
 
-&nbsp;			"Total Sales New Customer",
+			"Total Sales New Customer",
 
-&nbsp;			CALCULATE(
+			CALCULATE(
 
-&nbsp;				\[Sales Amount],
+				\[Sales Amount],
 
-&nbsp;				FILTER(
+				FILTER(
 
-&nbsp;					VALUES('Customer'\[CustomerKey]),
+					VALUES('Customer'\[CustomerKey]),
 
-&nbsp;					\[New Customer]
+					\[New Customer]
 
-&nbsp;				)
+				)
 
-&nbsp;			),
+			),
 
-&nbsp;			"Average Sales Per Customer",
+			"Average Sales Per Customer",
 
-&nbsp;			AVERAGEX(
+			AVERAGEX(
 
-&nbsp;				FILTER(
+				FILTER(
 
-&nbsp;					VALUES(Customer\[CustomerKey]),
+					VALUES(Customer\[CustomerKey]),
 
-&nbsp;					\[New Customer]
+					\[New Customer]
 
-&nbsp;				),
+				),
 
-&nbsp;				\[Sales Amount]
+				\[Sales Amount]
 
-&nbsp;			),
+			),
 
-&nbsp;			"Top 3 Customer",
+			"Top 3 Customer",
 
-&nbsp;			CONCATENATEX(TOPN(3,VALUES(Customer\[CustomerKey]),\[Sales Amount],DESC),\[CustomerKey],", "),
+			CONCATENATEX(TOPN(3,VALUES(Customer\[CustomerKey]),\[Sales Amount],DESC),\[CustomerKey],", "),
 
-&nbsp;			"Top 5 Product By New Customer",
+			"Top 5 Product By New Customer",
 
-&nbsp;			CONCATENATEX(
+			CONCATENATEX(
 
-&nbsp;				CALCULATETABLE(
+				CALCULATETABLE(
 
-&nbsp;					TOPN(5,VALUES('Product'\[ProductKey]),\[Sales Amount],DESC),
+					TOPN(5,VALUES('Product'\[ProductKey]),\[Sales Amount],DESC),
 
-&nbsp;					FILTER(
+					FILTER(
 
-&nbsp;						VALUES(Customer\[CustomerKey]),
+						VALUES(Customer\[CustomerKey]),
 
-&nbsp;						\[New Customer] 
+						\[New Customer] 
 
-&nbsp;					)
+					)
 
-&nbsp;				),
+				),
 
-&nbsp;				\[ProductKey],
+				\[ProductKey],
 
-&nbsp;				", "
+				", "
 
-&nbsp;			),
+			),
 
-&nbsp;			"%Sales Top 5 Product by New Customer",
+			"%Sales Top 5 Product by New Customer",
 
-&nbsp;			VAR \_Numerator = 
+			VAR \_Numerator = 
 
-&nbsp;				SUMX(
+				SUMX(
 
-&nbsp;					CALCULATETABLE(
+					CALCULATETABLE(
 
-&nbsp;						TOPN(5,VALUES('Product'\[ProductKey]),\[Sales Amount],DESC),
+						TOPN(5,VALUES('Product'\[ProductKey]),\[Sales Amount],DESC),
 
-&nbsp;						FILTER(
+						FILTER(
 
-&nbsp;							VALUES(Customer\[CustomerKey]),
+							VALUES(Customer\[CustomerKey]),
 
-&nbsp;							\[New Customer] 
+							\[New Customer] 
 
-&nbsp;						)
+						)
 
-&nbsp;					),
+					),
 
-&nbsp;					\[Sales Amount]
+					\[Sales Amount]
 
-&nbsp;				)
+				)
 
-&nbsp;			VAR \_Denominator = \[Sales Amount]
+			VAR \_Denominator = \[Sales Amount]
 
-&nbsp;			RETURN
+			RETURN
 
-&nbsp;				FORMAT(DIVIDE(\_Numerator, \_Denominator),"#%")	
+				FORMAT(DIVIDE(\_Numerator, \_Denominator),"#%")	
 
-&nbsp;		)
+		)
 
 EVALUATE B
 
@@ -844,89 +842,89 @@ EVALUATE B
 
 DEFINE 
 
-&nbsp;	VAR A = SUMMARIZE(Sales,'Product'\[Category], 'Date'\[Year],'Date'\[Month Number], \[Year Month Number])
+	VAR A = SUMMARIZE(Sales,'Product'\[Category], 'Date'\[Year],'Date'\[Month Number], \[Year Month Number])
 
-&nbsp;	VAR B = 
+	VAR B = 
 
-&nbsp;		ADDCOLUMNS(
+		ADDCOLUMNS(
 
-&nbsp;			A,
+			A,
 
-&nbsp;			"@Sales",\[Sales Amount]
+			"@Sales",\[Sales Amount]
 
-&nbsp;		)
+		)
 
-&nbsp;	VAR C = 
+	VAR C = 
 
-&nbsp;		ADDCOLUMNS(
+		ADDCOLUMNS(
 
-&nbsp;			B,
+			B,
 
-&nbsp;			"AvgSalesYear",
+			"AvgSalesYear",
 
-&nbsp;			VAR CurrentCategory = \[Category]
+			VAR CurrentCategory = \[Category]
 
-&nbsp;			VAR CurrentYear = \[Year]
+			VAR CurrentYear = \[Year]
 
-&nbsp;			RETURN
+			RETURN
 
-&nbsp;				AVERAGEX(
+				AVERAGEX(
 
-&nbsp;					FILTER(B,\[Year] = CurrentYear \&\& \[Category] = CurrentCategory),
+					FILTER(B,\[Year] = CurrentYear \&\& \[Category] = CurrentCategory),
 
-&nbsp;					\[@Sales]
+					\[@Sales]
 
-&nbsp;				),
+				),
 
-&nbsp;			"AvgSales3M",
+			"AvgSales3M",
 
-&nbsp;			VAR CurrentCategory = \[Category]
+			VAR CurrentCategory = \[Category]
 
-&nbsp;			VAR CurrentYear = \[Year]
+			VAR CurrentYear = \[Year]
 
-&nbsp;			VAR CurrentYM = \[Year Month Number]
+			VAR CurrentYM = \[Year Month Number]
 
-&nbsp;			VAR Table3M = 
+			VAR Table3M = 
 
-&nbsp;					FILTER(
+					FILTER(
 
-&nbsp;						B, 
+						B, 
 
-&nbsp;						\[Category] = CurrentCategory \&\& 
+						\[Category] = CurrentCategory \&\& 
 
-&nbsp;						\[Year] = CurrentYear 
+						\[Year] = CurrentYear 
 
-&nbsp;						\&\& (\[Year Month Number] >= CurrentYM - 2 \&\& \[Year Month Number] <= CurrentYM)
+						\&\& (\[Year Month Number] >= CurrentYM - 2 \&\& \[Year Month Number] <= CurrentYM)
 
-&nbsp;					)
+					)
 
-&nbsp;			RETURN
+			RETURN
 
-&nbsp;				IF(COUNTROWS(Table3M) = 3, AVERAGEX(Table3M,\[@Sales]))
+				IF(COUNTROWS(Table3M) = 3, AVERAGEX(Table3M,\[@Sales]))
 
-&nbsp;		)
+		)
 
-&nbsp;	VAR D = 
+	VAR D = 
 
-&nbsp;		ADDCOLUMNS(
+		ADDCOLUMNS(
 
-&nbsp;			C,
+			C,
 
-&nbsp;			"Greater than Avg Sales Year",
+			"Greater than Avg Sales Year",
 
-&nbsp;			SWITCH(
+			SWITCH(
 
-&nbsp;				TRUE(),
+				TRUE(),
 
-&nbsp;				NOT(ISBLANK(\[AvgSales3M])) \&\& \[AvgSales3M] >= \[AvgSalesYear], "✅",
+				NOT(ISBLANK(\[AvgSales3M])) \&\& \[AvgSales3M] >= \[AvgSalesYear], "✅",
 
-&nbsp;				NOT(ISBLANK(\[AvgSales3M])) \&\& \[AvgSales3M] < \[AvgSalesYear], "💥"
+				NOT(ISBLANK(\[AvgSales3M])) \&\& \[AvgSales3M] < \[AvgSalesYear], "💥"
 
-&nbsp;			)
+			)
 
-&nbsp;			
+			
 
-&nbsp;		)
+		)
 
 EVALUATE D
 
@@ -944,27 +942,27 @@ VAR ListOrders = VALUES(Sales\[Order Number])
 
 VAR ListDeliveryOrders = 
 
-&nbsp;   CALCULATETABLE(
+   CALCULATETABLE(
 
-&nbsp;       VALUES(Sales\[Order Number]),
+       VALUES(Sales\[Order Number]),
 
-&nbsp;       USERELATIONSHIP('Date'\[Date],Sales\[Delivery Date])
+       USERELATIONSHIP('Date'\[Date],Sales\[Delivery Date])
 
-&nbsp;   )
+   )
 
 VAR Result = 
 
-&nbsp;   COUNTROWS(INTERSECT(ListOrders,ListDeliveryOrders))
+   COUNTROWS(INTERSECT(ListOrders,ListDeliveryOrders))
 
 RETURN
 
-&nbsp;   Result
+   Result
 
-&nbsp;   
+   
 
-&nbsp;   
+   
 
-&nbsp;   
+   
 
 Ví dụ hàm USERELATIONSHIP 1 - Advance = 
 
@@ -972,39 +970,39 @@ Ví dụ hàm USERELATIONSHIP 1 - Advance =
 
 VAR ListYM = 
 
-&nbsp;   ADDCOLUMNS(
+   ADDCOLUMNS(
 
-&nbsp;       VALUES('Date'\[Year Month Number]),
+       VALUES('Date'\[Year Month Number]),
 
-&nbsp;       "@Orders",
+       "@Orders",
 
-&nbsp;       VAR ListOrders = CALCULATETABLE(VALUES(Sales\[Order Number]))
+       VAR ListOrders = CALCULATETABLE(VALUES(Sales\[Order Number]))
 
-&nbsp;       VAR ListDeliveryOrders = 
+       VAR ListDeliveryOrders = 
 
-&nbsp;           CALCULATETABLE(
+           CALCULATETABLE(
 
-&nbsp;               VALUES(Sales\[Order Number]),
+               VALUES(Sales\[Order Number]),
 
-&nbsp;               USERELATIONSHIP('Date'\[Date],Sales\[Delivery Date])
+               USERELATIONSHIP('Date'\[Date],Sales\[Delivery Date])
 
-&nbsp;           )
+           )
 
-&nbsp;       VAR Result = 
+       VAR Result = 
 
-&nbsp;           COUNTROWS(INTERSECT(ListOrders,ListDeliveryOrders))
+           COUNTROWS(INTERSECT(ListOrders,ListDeliveryOrders))
 
-&nbsp;       RETURN
+       RETURN
 
-&nbsp;           Result
+           Result
 
-&nbsp;   )
+   )
 
 RETURN
 
-&nbsp;   // Result
+   // Result
 
-&nbsp;   SUMX(ListYM,\[@Orders])
+   SUMX(ListYM,\[@Orders])
 
 
 
@@ -1014,31 +1012,31 @@ VAR ListOrders = VALUES(Sales\[Order Number])
 
 VAR ListDeliveryOrders = 
 
-&nbsp;   CALCULATETABLE(
+   CALCULATETABLE(
 
-&nbsp;       VALUES(Sales\[Order Number]),
+       VALUES(Sales\[Order Number]),
 
-&nbsp;       USERELATIONSHIP('Date'\[Date],Sales\[Delivery Date])
+       USERELATIONSHIP('Date'\[Date],Sales\[Delivery Date])
 
-&nbsp;   )
+   )
 
 VAR Result = 
 
-&nbsp;   INTERSECT(ListOrders,ListDeliveryOrders)
+   INTERSECT(ListOrders,ListDeliveryOrders)
 
 RETURN
 
-&nbsp;   CALCULATE(
+   CALCULATE(
 
-&nbsp;       \[Sales Amount],
+       \[Sales Amount],
 
-&nbsp;       Result
+       Result
 
-&nbsp;   )
+   )
 
-&nbsp;   
+   
 
-&nbsp;   
+   
 
 Ví dụ hàm USERELATIONSHIP 2 - Advance = 
 
@@ -1046,45 +1044,45 @@ Ví dụ hàm USERELATIONSHIP 2 - Advance =
 
 VAR ListYM = 
 
-&nbsp;   ADDCOLUMNS(
+   ADDCOLUMNS(
 
-&nbsp;       VALUES('Date'\[Year Month Number]),
+       VALUES('Date'\[Year Month Number]),
 
-&nbsp;       "@Orders",
+       "@Orders",
 
-&nbsp;       VAR ListOrders = CALCULATETABLE(VALUES(Sales\[Order Number]))
+       VAR ListOrders = CALCULATETABLE(VALUES(Sales\[Order Number]))
 
-&nbsp;       VAR ListDeliveryOrders = 
+       VAR ListDeliveryOrders = 
 
-&nbsp;           CALCULATETABLE(
+           CALCULATETABLE(
 
-&nbsp;               VALUES(Sales\[Order Number]),
+               VALUES(Sales\[Order Number]),
 
-&nbsp;               USERELATIONSHIP('Date'\[Date],Sales\[Delivery Date])
+               USERELATIONSHIP('Date'\[Date],Sales\[Delivery Date])
 
-&nbsp;           )
+           )
 
-&nbsp;       VAR Result = 
+       VAR Result = 
 
-&nbsp;           INTERSECT(ListOrders,ListDeliveryOrders)
+           INTERSECT(ListOrders,ListDeliveryOrders)
 
-&nbsp;       RETURN
+       RETURN
 
-&nbsp;           CALCULATE(
+           CALCULATE(
 
-&nbsp;               \[Sales Amount],
+               \[Sales Amount],
 
-&nbsp;               Result
+               Result
 
-&nbsp;           )
+           )
 
-&nbsp;   )
+   )
 
 RETURN
 
-&nbsp;   // Result
+   // Result
 
-&nbsp;   SUMX(ListYM,\[@Orders])
+   SUMX(ListYM,\[@Orders])
 
 
 
