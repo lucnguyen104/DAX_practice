@@ -36,7 +36,8 @@ DEFINE
 
 EVALUATE B
 ORDER BY [ColumnName] ASC
-
+```
+``` dax
 EVALUATE 
     DISTINCT(
         SELECTCOLUMNS(
