@@ -53,13 +53,14 @@ ORDER BY
 
 
 
-Chapter 6: Các hàm tính toán trong DAX
+# Chapter 6: Các hàm tính toán trong DAX
 
+### Demo
 
+```dax
+Countrows = COUNTROWS(Sales)
 
-Demo Countrows = COUNTROWS(Sales)
-
-Demo DISTINCTCOUNT = DISTINCTCOUNT(Sales\[CustomerKey])
+DISTINCTCOUNT = DISTINCTCOUNT(Sales[CustomerKey])
 
 
 
