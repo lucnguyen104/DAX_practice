@@ -58,7 +58,7 @@ DISTINCTCOUNT = DISTINCTCOUNT(Sales[CustomerKey])
 
 ## Chapter 9: Các hàm bỏ bộ lọc
 
-### ALLSELECTED - Example 1
+### Example 1: Với visual định dạng như hình sau tạo 1 measure tính toán %Sales của từng Continent
 ```dax
 ALLSELECTED - Example 1 = 
 DIVIDE(
@@ -70,7 +70,7 @@ DIVIDE(
 )
 ```
 
-### ALLSELECTED - Example 1 - Advance
+### Đoạn Script nâng cao và dynamic theo Column/Field
 ```dax
 ALLSELECTED - Example 1 - Advance = 
 DIVIDE(
@@ -82,8 +82,9 @@ DIVIDE(
 )
 ```
 
-### ALLSELECTED - Example 2
+### Example 2: Tính %Sales theo các tầng dữ liệu Customer[Continent] → Customer[Country] → Product[Category]
 ```dax
+ALLSELECTED - Example 2 = 
 VAR SalesContributionByCategory = 
     DIVIDE(
         [Sales Amount],
@@ -102,7 +103,6 @@ VAR SalesContributionByCountry =
             ALLSELECTED(Customer[Country])
         )
     )
-
 VAR SalesContributionByContinent = 
     DIVIDE(
         [Sales Amount],
@@ -111,67 +111,65 @@ VAR SalesContributionByContinent =
             ALLSELECTED()
         )
     )
-
 RETURN
     SWITCH(
         TRUE(),
-        ISFILTERED('Product'[Category]), SalesContributionByCategory,
-        ISFILTERED(Customer[Country]), SalesContributionByCountry,
-        ISFILTERED(Customer[Continent]), SalesContributionByContinent
+        ISFILTERED('Product'[Category]),SalesContributionByCategory,
+        ISFILTERED(Customer[Country]),SalesContributionByCountry,
+        ISFILTERED(Customer[Continent]),SalesContributionByContinent
     )
 ```
 ## 9.7. Đáp án bài tập
 
-### 12.1 - Tỷ lệ % lợi nhuận so với doanh thu
 ```dax
-DIVIDE([#Profit], [#Revenue])
-```
+Chapter 6,7,8,9 - 12.1 = 
+-- Tỷ lệ % lợi nhuận so với doanh thu 
+DIVIDE([#Profit],[#Revenue])
 
-### 12.2 - Tỷ lệ % doanh thu so với chi phí
-```dax
-DIVIDE([#Revenue], [#Cost])
-```
+Chapter 6,7,8,9 - 12.2 = 
+-- Tỷ lệ % doanh thu so với chi phí 
+DIVIDE([#Revenue],[#Cost])
 
-### 12.3 - Trung bình mỗi khách hàng mua bao nhiêu SKUs
-```dax
+Chapter 6,7,8,9 - 12.3 = 
+-- Trung bình mỗi khách hàng mua bao nhiêu SKUs 
 DIVIDE(
     [#Number Of Product],
     [#Number Of Customer]
 )
-```
 
-### 12.3 - Fix 1 - Trung bình số sản phẩm mỗi customer
-```dax
+Chapter 6,7,8,9 - 12.3 - Fix 1 = 
+-- Tính ra cho từng customer và trung bình cái số Customer đó lại
 AVERAGEX(
     VALUES(Customer[CustomerKey]),
     [#Number Of Product]
 )
-```
 
-### 12.3 - Fix 2 - Trung bình SKUs mỗi customer qua các năm
-```dax
+Chapter 6,7,8,9 - 12.3 - Fix 2 = 
+-- Tính trung bình một khách hàng mua bao nhiêu SKUs qua các năm
 VAR Result =
     CALCULATE(
+        -- Tính trung bình qua các năm
         AVERAGEX(
-            SUMMARIZE(Sales, 'Date'[Year]),
+            -- Liệt kê ra các Year có Sales
+            SUMMARIZE(Sales,'Date'[Year]),
             [Chapter 6,7,8,9 - 12.3 - Fix 1]
         ),
+        -- Bỏ bộ lọc của Year
         ALL('Date'[Year])
     )
-
 RETURN
-    IF([#Revenue] <> 0, Result)
-```
-
-### 13.1 - Tính tỷ lệ doanh thu theo danh mục
-```dax
+    -- Loại bỏ những trường hợp Year bị blank
+    IF([#Revenue] <> 0,Result)
+    
+    
+Chapter 6,7,8,9 - 13.1 = 
 VAR LstCategory = VALUES('Product'[Category])
-
 VAR Result = 
     DIVIDE(
         CALCULATE(
             [#Revenue],
             ALL('Product'),
+            // VALUES('Product'[Category])
             'Product'[Category] IN LstCategory
         ),
         CALCULATE(
@@ -179,15 +177,13 @@ VAR Result =
             ALL('Product')
         )
     )
-
 RETURN
+    // COUNTROWS(LstCategory)
     Result
-```
-
-### Chapter 6,7,8,9 - 14.1
-
-**Cách 1:**
-```dax
+    
+    
+ Chapter 6,7,8,9 - 14.1 = 
+// Cách 1:
 // COUNTROWS(
 //     FILTER(
 //         CALCULATETABLE(
@@ -197,10 +193,8 @@ RETURN
 //         [Sales Amount] > 700
 //     )
 // )
-```
 
-**Cách 2:**
-```dax
+// Cách 2:
 CALCULATE(
     // [#Number Of Store],
     COUNTROWS(Store),
@@ -210,13 +204,9 @@ CALCULATE(
     ),
     Store[Status] = "" 
 )
-```
 
----
 
-### Chapter 6,7,8,9 - 14.2
-
-```dax
+Chapter 6,7,8,9 - 14.2 = 
 DIVIDE(
     [Chapter 6,7,8,9 - 14.1],
     CALCULATE(
@@ -224,30 +214,21 @@ DIVIDE(
         Store[Status] = ""
     )
 )
-```
 
----
 
-### Chapter 6,7,8,9 - 15.1
-
-```dax
+Chapter 6,7,8,9 - 15.1 = 
 VAR CurrentYear = MAX('Date'[Year])
 RETURN
     CALCULATE(
         [#Revenue],
         'Date'[Year] <= CurrentYear
     )
-```
 
----
 
-### Chapter 6,7,8,9 - 15.1 - Fix
-
-```dax
+Chapter 6,7,8,9 - 15.1 - Fix = 
 VAR MinYear = MIN('Date'[Year])
 VAR MaxYear = MAX('Date'[Year])
 VAR CurrentYearViz = MAX('DateViz'[Year])
-
 VAR Result =
     IF(
         CurrentYearViz >= MinYear && CurrentYearViz <= MaxYear,
@@ -256,188 +237,106 @@ VAR Result =
             'Date'[Year] <= CurrentYearViz
         )
     )
-
 RETURN
     Result
-```
-
----
-
-### Chapter 6,7,8,9 - 15.2
-
-```dax
+   
+Chapter 6,7,8,9 - 15.2 = 
 VAR CurrentYear = MAX('Date'[Year])
 RETURN
     CALCULATE(
         [#Profit],
         'Date'[Year] <= CurrentYear
     )
-```
 
----
-
-### Chapter 6,7,8,9 - 15.3
-
-```dax
+Chapter 6,7,8,9 - 15.3 = 
 VAR CurrentYear = MAX('Date'[Year])
 RETURN
     CALCULATE(
         [#Number Of Customer],
         'Date'[Year] <= CurrentYear
     )
-```
 
 
-### Chapter 6,7,8,9 - 17 - Cách 1 = 
 
-```dax
+
+Chapter 6,7,8,9 - 17 - Cách 1 = 
 VAR ListCustomer = 
-
-   ADDCOLUMNS(
-
-      SUMMARIZE(Sales, Customer\[CustomerKey]),
-
-      "@NumberOfNonSalesMonth",
-
-      VAR ListSalesMonth = 
-
-           CALCULATETABLE(
-
-               FILTER(
-
-                   SUMMARIZE(Sales,'Date'\[Year Month Number]),
-
-                   \[Sales Amount] > 0
-
-               )
-
-           )
-
-       VAR AllMonth = 
-
-           VALUES('Date'\[Year Month Number])
-
-       VAR NonSalesMonth = 
-
-           EXCEPT(AllMonth,ListSalesMonth)
-
-       RETURN
-
-           COUNTROWS(NonSalesMonth)
-
-   )
-
+    ADDCOLUMNS(
+        SUMMARIZE(Sales, Customer[CustomerKey]),
+        "@NumberOfNonSalesMonth",
+        VAR ListSalesMonth = 
+            CALCULATETABLE(
+                FILTER(
+                    SUMMARIZE(Sales,'Date'[Year Month Number]),
+                    [Sales Amount] > 0
+                )
+            )
+        VAR AllMonth = 
+            VALUES('Date'[Year Month Number])
+        VAR NonSalesMonth = 
+            EXCEPT(AllMonth,ListSalesMonth)
+        RETURN
+            COUNTROWS(NonSalesMonth)
+    )
 RETURN
-
-   // CONCATENATEX(
-
-   //     DISTINCT(SELECTCOLUMNS(ListCustomer,"Month",\[@NumberOfNonSalesMonth])),
-
-   //     \[Month],", "
-
-   // )
-
-   SUMX(ListCustomer,\[@NumberOfNonSalesMonth])
-
+    // CONCATENATEX(
+    //     DISTINCT(SELECTCOLUMNS(ListCustomer,"Month",[@NumberOfNonSalesMonth])),
+    //     [Month],", "
+    // )
+    SUMX(ListCustomer,[@NumberOfNonSalesMonth])
+    
    
 
-  
-```
 
-
-
-
-### Chapter 6,7,8,9 - 17 - Cách 2 = 
-
-```dax
+Chapter 6,7,8,9 - 17 - Cách 2 = 
 VAR ListCustomer = 
+    ADDCOLUMNS(
+        SUMMARIZE(Sales, Customer[CustomerKey]),
+        "@NumberOfNonSalesMonth",
+   
+        COUNTROWS(
+            FILTER(
+                VALUES('Date'[Year Month Number]),
+                ISBLANK([Sales Amount]) || [Sales Amount] <= 0
+            )
+        )
 
-   ADDCOLUMNS(
-
-       SUMMARIZE(Sales, Customer\[CustomerKey]),
-
-       "@NumberOfNonSalesMonth",
-
-  
-
-       COUNTROWS(
-
-           FILTER(
-
-               VALUES('Date'\[Year Month Number]),
-
-               ISBLANK(\[Sales Amount]) || \[Sales Amount] <= 0
-
-           )
-
-       )
-
-   )
-
+ 
+    )
 RETURN
-
-   // CONCATENATEX(
-
-   //     DISTINCT(SELECTCOLUMNS(ListCustomer,"Month",\[@NumberOfNonSalesMonth])),
-
-   //     \[Month],", "
-
-   // )
-
-   SUMX(ListCustomer,\[@NumberOfNonSalesMonth])
-```
+    // CONCATENATEX(
+    //     DISTINCT(SELECTCOLUMNS(ListCustomer,"Month",[@NumberOfNonSalesMonth])),
+    //     [Month],", "
+    // )
+    SUMX(ListCustomer,[@NumberOfNonSalesMonth])
 
 
-```dax
+
 Chapter 6,7,8,9 - 17.2 = 
-
 VAR ListCustomer = 
+    ADDCOLUMNS(
+        SUMMARIZE(Sales, Customer[CustomerKey]),
+        "@NumberOfNonSalesMonth",
+   
+        COUNTROWS(
+            FILTER(
+                VALUES('Date'[Year Month Number]),
+                ISBLANK([Sales Amount]) || [Sales Amount] <= 0
+            )
+        )
 
-   ADDCOLUMNS(
-
-       SUMMARIZE(Sales, Customer\[CustomerKey]),
-
-       "@NumberOfNonSalesMonth",
-
-  
-
-       COUNTROWS(
-
-           FILTER(
-
-               VALUES('Date'\[Year Month Number]),
-
-               ISBLANK(\[Sales Amount]) || \[Sales Amount] <= 0
-
-           )
-
-       )
-
-
-
-
-
-   )
-
+ 
+    )
 RETURN
-
-   DIVIDE(
-
-       SUMX(ListCustomer,\[@NumberOfNonSalesMonth]),
-
-       COUNTROWS(
-
-           FILTER(
-
-               ListCustomer,
-
-               \[@NumberOfNonSalesMonth] > 0
-
-           )
-
-       )
-
-   )
+    DIVIDE(
+        SUMX(ListCustomer,[@NumberOfNonSalesMonth]),
+        COUNTROWS(
+            FILTER(
+                ListCustomer,
+                [@NumberOfNonSalesMonth] > 0
+            )
+        )
+    )
 ```
 
 
@@ -450,379 +349,195 @@ RETURN
 
 ``` dax
 DEFINE 
-
 	VAR A =
-
-		SUMMARIZE(Sales,'Product'\[Category],'Date'\[Year])
-
-
+		SUMMARIZE(Sales,'Product'[Category],'Date'[Year])
 
 	VAR B = 
-
 		ADDCOLUMNS(
-
 			A, 
-
 			"@Sales",
-
-			\[Sales Amount],
-
+			[Sales Amount],
 			"@Sales1",
-
-			CALCULATE(SUMX(Sales,\[Net Price]\*\[Quantity]))
-
+			CALCULATE(SUMX(Sales,[Net Price]*[Quantity]))
 		)
 
-
-
 EVALUATE B
-
-
-
 
 
 -- Avg Sales Per Month By Year, Category
-
 -- Trung mỗi tháng trong 1 năm mỗi category bán được bao nhiêu
-
 -- Update đếm tổng số tháng có phát sinh doanh số của category đó trong năm
-
 DEFINE 
-
 	VAR A =
-
-		SUMMARIZE(Sales,'Product'\[Category],'Date'\[Year])
-
-
+		SUMMARIZE(Sales,'Product'[Category],'Date'[Year])
 
 	VAR B = 
-
 		ADDCOLUMNS(
-
 			A, 
-
 			"@Sales",
-
-			\[Sales Amount],
-
+			[Sales Amount],
 			"@AvgSalesPerMonth",
-
-			AVERAGEX(VALUES('Date'\[Month]),\[Sales Amount]),
-
+			AVERAGEX(VALUES('Date'[Month]),[Sales Amount]),
 			"NumberOfMonth",
-
-			CALCULATE(COUNTROWS(SUMMARIZE(Sales,'Date'\[Month])))
-
+			CALCULATE(COUNTROWS(SUMMARIZE(Sales,'Date'[Month])))
 		)
-
-
 
 EVALUATE B
 
 
-
-
-
 -- Đếm số lượng sản phẩm không doanh thu tại các country theo từng năm
-
 DEFINE 
-
 	VAR A = 
-
-		SUMMARIZE(Sales,'Store'\[Country],'Date'\[Year])
-
+		SUMMARIZE(Sales,'Store'[Country],'Date'[Year])
 		
-
 EVALUATE A
 
 
-
-
-
 -- Đếm số lượng sản phẩm không doanh thu tại các country theo từng năm
 
-
-
 DEFINE 
-
 	VAR A = 
-
-		SUMMARIZE(Sales,'Store'\[Country],'Date'\[Year])
-
+		SUMMARIZE(Sales,'Store'[Country],'Date'[Year])
 		
-
 	VAR B = 
-
 		ADDCOLUMNS(
-
 			A,
-
 			"ProductNoSales",
-
 			COUNTROWS(
-
 				FILTER(
-
-					VALUES('Product'\[ProductKey]),
-
-					ISBLANK(\[Sales Amount])
-
+					VALUES('Product'[ProductKey]),
+					ISBLANK([Sales Amount])
 				)
-
 			),
-
 			"ProductSales",
-
-			CALCULATE(DISTINCTCOUNT(Sales\[ProductKey])),
-
+			CALCULATE(DISTINCTCOUNT(Sales[ProductKey])),
 			"Total Product",
-
-			DISTINCTCOUNT(Sales\[ProductKey])
-
+			DISTINCTCOUNT(Sales[ProductKey])
 		)
-
 		
-
 EVALUATE B
-
-
-
 
 
 -- Đếm số lượng khách hàng mới trong năm của category tại mỗi country, %Growth New Customer 
-
 DEFINE 
-
-	MEASURE 'All Meaasures'\[New Customer] = 
-
+	MEASURE 'All Meaasures'[New Customer] = 
 		VAR ListCustomer = 
-
 			CALCULATETABLE(
-
 				ADDCOLUMNS(
-
-					VALUES('Customer'\[CustomerKey]),
-
+					VALUES('Customer'[CustomerKey]),
 					"@FirstYear",
-
-					YEAR(CALCULATE(MIN('Sales'\[Order Date])))
-
+					YEAR(CALCULATE(MIN('Sales'[Order Date])))
 				),
-
 				ALL('Date')
-
 			)
-
 		RETURN
-
-			COUNTROWS(FILTER(ListCustomer,\[@FirstYear] IN VALUES('Date'\[Year])))
-
+			COUNTROWS(FILTER(ListCustomer,[@FirstYear] IN VALUES('Date'[Year])))
 		
-
 	VAR A = 
-
-		SUMMARIZE(Sales,'Store'\[Country], 'Product'\[Category],'Date'\[Year])
-
+		SUMMARIZE(Sales,'Store'[Country], 'Product'[Category],'Date'[Year])
 		
-
 	VAR B = 
-
 		ADDCOLUMNS(
-
 			A,
-
 			"New Customer",
-
-			\[New Customer],
-
+			[New Customer],
 			"%Growth New Customer",
-
-			VAR CurrYr = \[Year]
-
-			VAR PrevNew = CALCULATE(\[New Customer], 'Date'\[Year] = CurrYr-1)
-
+			VAR CurrYr = [Year]
+			VAR PrevNew = CALCULATE([New Customer], 'Date'[Year] = CurrYr-1)
 			RETURN
-
-               FORMAT(DIVIDE(\[New Customer]-PrevNew,PrevNew),"#%")
-
+                FORMAT(DIVIDE([New Customer]-PrevNew,PrevNew),"#%")
 		)
-
-
 
 EVALUATE B
 
 
-
-
-
 -- Tính Sales của những khách hàng mới đó
-
 -- Trung bình mỗi khách hàng mới mua bao nhiêu
-
 -- Lấy Top 3 khách hàng có Sales cao nhất
-
 -- Lấy ra Top 5 sản phẩm được mua nhiều nhất bởi khách hàng mới
-
 -- Tính tỷ lệ %Sales của Top 5 sản phẩm đó so với total những sản phẩm được mua bởi khách hàng mới
 
 
 
-
-
-
-
 DEFINE 
-
-	MEASURE 'All Meaasures'\[New Customer] = 
-
+	MEASURE 'All Meaasures'[New Customer] = 
 		VAR ListCustomer = 
-
 			CALCULATETABLE(
-
 				ADDCOLUMNS(
-
-					VALUES('Customer'\[CustomerKey]),
-
+					VALUES('Customer'[CustomerKey]),
 					"@FirstYear",
-
-					YEAR(CALCULATE(MIN('Sales'\[Order Date])))
-
+					YEAR(CALCULATE(MIN('Sales'[Order Date])))
 				),
-
 				ALL('Date')
-
 			)
-
 		RETURN
-
-			COUNTROWS(FILTER(ListCustomer,\[@FirstYear] IN VALUES('Date'\[Year])))
-
+			COUNTROWS(FILTER(ListCustomer,[@FirstYear] IN VALUES('Date'[Year])))
 		
-
 	VAR A = 
-
-		SUMMARIZE(Sales,'Store'\[Country], 'Product'\[Category],'Date'\[Year])
-
+		SUMMARIZE(Sales,'Store'[Country], 'Product'[Category],'Date'[Year])
 		
-
 	VAR B = 
-
 		ADDCOLUMNS(
-
 			A,
-
-			"Sales Amount",\[Sales Amount],
-
+			"Sales Amount",[Sales Amount],
 			"New Customer",
-
-			\[New Customer],
-
+			[New Customer],
 			"%Growth New Customer",
-
-			VAR CurrYr = \[Year]
-
-			VAR PrevNew = CALCULATE(\[New Customer], 'Date'\[Year] = CurrYr-1)
-
+			VAR CurrYr = [Year]
+			VAR PrevNew = CALCULATE([New Customer], 'Date'[Year] = CurrYr-1)
 			RETURN
-
-               FORMAT(DIVIDE(\[New Customer]-PrevNew,PrevNew),"#%"),
-
+                FORMAT(DIVIDE([New Customer]-PrevNew,PrevNew),"#%"),
 			"Total Sales New Customer",
-
 			CALCULATE(
-
-				\[Sales Amount],
-
+				[Sales Amount],
 				FILTER(
-
-					VALUES('Customer'\[CustomerKey]),
-
-					\[New Customer]
-
+					VALUES('Customer'[CustomerKey]),
+					[New Customer]
 				)
-
 			),
-
 			"Average Sales Per Customer",
-
 			AVERAGEX(
-
 				FILTER(
-
-					VALUES(Customer\[CustomerKey]),
-
-					\[New Customer]
-
+					VALUES(Customer[CustomerKey]),
+					[New Customer]
 				),
-
-				\[Sales Amount]
-
+				[Sales Amount]
 			),
-
 			"Top 3 Customer",
-
-			CONCATENATEX(TOPN(3,VALUES(Customer\[CustomerKey]),\[Sales Amount],DESC),\[CustomerKey],", "),
-
+			CONCATENATEX(TOPN(3,VALUES(Customer[CustomerKey]),[Sales Amount],DESC),[CustomerKey],", "),
 			"Top 5 Product By New Customer",
-
 			CONCATENATEX(
-
 				CALCULATETABLE(
-
-					TOPN(5,VALUES('Product'\[ProductKey]),\[Sales Amount],DESC),
-
+					TOPN(5,VALUES('Product'[ProductKey]),[Sales Amount],DESC),
 					FILTER(
-
-						VALUES(Customer\[CustomerKey]),
-
-						\[New Customer] 
-
+						VALUES(Customer[CustomerKey]),
+						[New Customer] 
 					)
-
 				),
-
-				\[ProductKey],
-
+				[ProductKey],
 				", "
-
 			),
-
 			"%Sales Top 5 Product by New Customer",
-
-			VAR \_Numerator = 
-
+			VAR _Numerator = 
 				SUMX(
-
 					CALCULATETABLE(
-
-						TOPN(5,VALUES('Product'\[ProductKey]),\[Sales Amount],DESC),
-
+						TOPN(5,VALUES('Product'[ProductKey]),[Sales Amount],DESC),
 						FILTER(
-
-							VALUES(Customer\[CustomerKey]),
-
-							\[New Customer] 
-
+							VALUES(Customer[CustomerKey]),
+							[New Customer] 
 						)
-
 					),
-
-					\[Sales Amount]
-
+					[Sales Amount]
 				)
-
-			VAR \_Denominator = \[Sales Amount]
-
+			VAR _Denominator = [Sales Amount]
 			RETURN
-
-				FORMAT(DIVIDE(\_Numerator, \_Denominator),"#%")	
-
+				FORMAT(DIVIDE(_Numerator, _Denominator),"#%")	
 		)
-
 EVALUATE B
+```
 
 
-
+``` dax
 -- Xác định những Category có doanh thu trung bình trong 3 tháng liên tục bao gồm tháng hiện tại lớn hơn doanh thu trung bình cả năm
 
 -- Lưu ý đủ 3 tháng mới tính, và xác định 3 tháng liên tục trong năm
@@ -831,100 +546,59 @@ EVALUATE B
 
 -- Không đạt yêu cầu: 💥
 
-
-
+``` dax
+-- Xác định những Category có doanh thu trung bình trong 3 tháng liên tục bao gồm tháng hiện tại lớn hơn doanh thu trung bình cả năm
+-- Lưu ý đủ 3 tháng mới tính, và xác định 3 tháng liên tục trong năm
+-- Đạt yêu cầu: ✅
+-- Không đạt yêu cầu: 💥
 
 
 DEFINE 
-
-	VAR A = SUMMARIZE(Sales,'Product'\[Category], 'Date'\[Year],'Date'\[Month Number], \[Year Month Number])
-
+	VAR A = SUMMARIZE(Sales,'Product'[Category], 'Date'[Year],'Date'[Month Number], [Year Month Number])
 	VAR B = 
-
 		ADDCOLUMNS(
-
 			A,
-
-			"@Sales",\[Sales Amount]
-
+			"@Sales",[Sales Amount]
 		)
-
 	VAR C = 
-
 		ADDCOLUMNS(
-
 			B,
-
 			"AvgSalesYear",
-
-			VAR CurrentCategory = \[Category]
-
-			VAR CurrentYear = \[Year]
-
+			VAR CurrentCategory = [Category]
+			VAR CurrentYear = [Year]
 			RETURN
-
 				AVERAGEX(
-
-					FILTER(B,\[Year] = CurrentYear \&\& \[Category] = CurrentCategory),
-
-					\[@Sales]
-
+					FILTER(B,[Year] = CurrentYear && [Category] = CurrentCategory),
+					[@Sales]
 				),
-
 			"AvgSales3M",
-
-			VAR CurrentCategory = \[Category]
-
-			VAR CurrentYear = \[Year]
-
-			VAR CurrentYM = \[Year Month Number]
-
+			VAR CurrentCategory = [Category]
+			VAR CurrentYear = [Year]
+			VAR CurrentYM = [Year Month Number]
 			VAR Table3M = 
-
 					FILTER(
-
 						B, 
-
-						\[Category] = CurrentCategory \&\& 
-
-						\[Year] = CurrentYear 
-
-						\&\& (\[Year Month Number] >= CurrentYM - 2 \&\& \[Year Month Number] <= CurrentYM)
-
+						[Category] = CurrentCategory && 
+						[Year] = CurrentYear 
+						&& ([Year Month Number] >= CurrentYM - 2 && [Year Month Number] <= CurrentYM)
 					)
-
 			RETURN
-
-				IF(COUNTROWS(Table3M) = 3, AVERAGEX(Table3M,\[@Sales]))
-
+				IF(COUNTROWS(Table3M) = 3, AVERAGEX(Table3M,[@Sales]))
 		)
-
 	VAR D = 
-
 		ADDCOLUMNS(
-
 			C,
-
 			"Greater than Avg Sales Year",
-
 			SWITCH(
-
 				TRUE(),
-
-				NOT(ISBLANK(\[AvgSales3M])) \&\& \[AvgSales3M] >= \[AvgSalesYear], "✅",
-
-				NOT(ISBLANK(\[AvgSales3M])) \&\& \[AvgSales3M] < \[AvgSalesYear], "💥"
-
+				NOT(ISBLANK([AvgSales3M])) && [AvgSales3M] >= [AvgSalesYear], "✅",
+				NOT(ISBLANK([AvgSales3M])) && [AvgSales3M] < [AvgSalesYear], "💥"
 			)
-
 			
-
 		)
-
 EVALUATE D
-
-ORDER BY \[Category] ASC, \[Year] ASC, \[Month Number] ASC
-
+ORDER BY [Category] ASC, [Year] ASC, [Month Number] ASC
+```
 
 
 Chapter 11: Các hàm xây dựng mối quan hệ ảo
