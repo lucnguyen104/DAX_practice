@@ -601,1789 +601,616 @@ ORDER BY [Category] ASC, [Year] ASC, [Month Number] ASC
 ```
 
 
-Chapter 11: Các hàm xây dựng mối quan hệ ảo
+## Chapter 11: Các hàm xây dựng mối quan hệ ảo
 
 
-
+``` dax
 Ví dụ hàm USERELATIONSHIP 1 = 
-
-VAR ListOrders = VALUES(Sales\[Order Number])
-
+VAR ListOrders = VALUES(Sales[Order Number])
 VAR ListDeliveryOrders = 
-
-   CALCULATETABLE(
-
-       VALUES(Sales\[Order Number]),
-
-       USERELATIONSHIP('Date'\[Date],Sales\[Delivery Date])
-
-   )
-
+    CALCULATETABLE(
+        VALUES(Sales[Order Number]),
+        USERELATIONSHIP('Date'[Date],Sales[Delivery Date])
+    )
 VAR Result = 
-
-   COUNTROWS(INTERSECT(ListOrders,ListDeliveryOrders))
-
+    COUNTROWS(INTERSECT(ListOrders,ListDeliveryOrders))
 RETURN
-
-   Result
-
-   
-
-   
-
-   
-
+    Result
+    
+    
+    
 Ví dụ hàm USERELATIONSHIP 1 - Advance = 
-
 -- Sum lại từng tháng cho ngữ cảnh Year
-
 VAR ListYM = 
-
-   ADDCOLUMNS(
-
-       VALUES('Date'\[Year Month Number]),
-
-       "@Orders",
-
-       VAR ListOrders = CALCULATETABLE(VALUES(Sales\[Order Number]))
-
-       VAR ListDeliveryOrders = 
-
-           CALCULATETABLE(
-
-               VALUES(Sales\[Order Number]),
-
-               USERELATIONSHIP('Date'\[Date],Sales\[Delivery Date])
-
-           )
-
-       VAR Result = 
-
-           COUNTROWS(INTERSECT(ListOrders,ListDeliveryOrders))
-
-       RETURN
-
-           Result
-
-   )
-
+    ADDCOLUMNS(
+        VALUES('Date'[Year Month Number]),
+        "@Orders",
+        VAR ListOrders = CALCULATETABLE(VALUES(Sales[Order Number]))
+        VAR ListDeliveryOrders = 
+            CALCULATETABLE(
+                VALUES(Sales[Order Number]),
+                USERELATIONSHIP('Date'[Date],Sales[Delivery Date])
+            )
+        VAR Result = 
+            COUNTROWS(INTERSECT(ListOrders,ListDeliveryOrders))
+        RETURN
+            Result
+    )
 RETURN
-
-   // Result
-
-   SUMX(ListYM,\[@Orders])
-
-
-
+    // Result
+    SUMX(ListYM,[@Orders])
+```
+### 2.Tính doanh thu, đếm số lượng khách hàng của những đơn hàng ở câu 1
+``` dax
 Ví dụ hàm USERELATIONSHIP 2 = 
-
-VAR ListOrders = VALUES(Sales\[Order Number])
-
+VAR ListOrders = VALUES(Sales[Order Number])
 VAR ListDeliveryOrders = 
-
-   CALCULATETABLE(
-
-       VALUES(Sales\[Order Number]),
-
-       USERELATIONSHIP('Date'\[Date],Sales\[Delivery Date])
-
-   )
-
+    CALCULATETABLE(
+        VALUES(Sales[Order Number]),
+        USERELATIONSHIP('Date'[Date],Sales[Delivery Date])
+    )
 VAR Result = 
-
-   INTERSECT(ListOrders,ListDeliveryOrders)
-
+    INTERSECT(ListOrders,ListDeliveryOrders)
 RETURN
-
-   CALCULATE(
-
-       \[Sales Amount],
-
-       Result
-
-   )
+    CALCULATE(
+        [Sales Amount],
+        Result
+    )
+    
+    
+Ví dụ hàm USERELATIONSHIP 2 - Advance = 
+-- Sum lại từng tháng cho ngữ cảnh Year
+VAR ListYM = 
+    ADDCOLUMNS(
+        VALUES('Date'[Year Month Number]),
+        "@Orders",
+        VAR ListOrders = CALCULATETABLE(VALUES(Sales[Order Number]))
+        VAR ListDeliveryOrders = 
+            CALCULATETABLE(
+                VALUES(Sales[Order Number]),
+                USERELATIONSHIP('Date'[Date],Sales[Delivery Date])
+            )
+        VAR Result = 
+            INTERSECT(ListOrders,ListDeliveryOrders)
+        RETURN
+            CALCULATE(
+                [Sales Amount],
+                Result
+            )
+    )
+RETURN
+    // Result
+    SUMX(ListYM,[@Orders])
 ```
    
-
+### 3.Đếm số lượng những đơn hàng được order từ tháng trước, năm trước. Nhưng được ship vào tháng này/ năm này
    
+``` dax
+Ví dụ hàm USERELATIONSHIP 3 = 
+VAR CurrentYM = CALCULATE(MAX('Date'[YM Number]))
+VAR PreviousYM =  
+    CALCULATE(
+        MAX('Date'[YM Number]),
+        ALL('Date'),
+        'Date'[YM Number] < CurrentYM
+    )
+VAR ListCurrentDeliveryOrder = 
+    CALCULATETABLE(
+        VALUES(Sales[Order Number]),
+        USERELATIONSHIP('Date'[Date],Sales[Delivery Date])
+    )
 
-Ví dụ hàm USERELATIONSHIP 2 - Advance = 
+VAR PreviousMonthOrder = 
+    CALCULATETABLE(
+        VALUES(Sales[Order Number]),
+        ALL('Date'),
+        'Date'[YM Number] = PreviousYM
+    )
 
--- Sum lại từng tháng cho ngữ cảnh Year
-
-VAR ListYM = 
-
-   ADDCOLUMNS(
-
-       VALUES('Date'\[Year Month Number]),
-
-       "@Orders",
-
-       VAR ListOrders = CALCULATETABLE(VALUES(Sales\[Order Number]))
-
-       VAR ListDeliveryOrders = 
-
-           CALCULATETABLE(
-
-               VALUES(Sales\[Order Number]),
-
-               USERELATIONSHIP('Date'\[Date],Sales\[Delivery Date])
-
-           )
-
-       VAR Result = 
-
-           INTERSECT(ListOrders,ListDeliveryOrders)
-
-       RETURN
-
-           CALCULATE(
-
-               \[Sales Amount],
-
-               Result
-
-           )
-
-   )
-
+VAR Result = 
+    INTERSECT(ListCurrentDeliveryOrder,PreviousMonthOrder)
 RETURN
-
-   // Result
-
-   SUMX(ListYM,\[@Orders])
-
-
-
-**Ví dụ hàm USERELATIONSHIP 3 =** 
-
-**VAR CurrentYM = CALCULATE(MAX('Date'\[YM Number]))**
-
-**VAR PreviousYM =**  
-
-    **CALCULATE(**
-
-        **MAX('Date'\[YM Number]),**
-
-        **ALL('Date'),**
-
-        **'Date'\[YM Number] < CurrentYM**
-
-    **)**
-
-**VAR ListCurrentDeliveryOrder =** 
-
-    **CALCULATETABLE(**
-
-        **VALUES(Sales\[Order Number]),**
-
-        **USERELATIONSHIP('Date'\[Date],Sales\[Delivery Date])**
-
-    **)**
-
-
-
-**VAR PreviousMonthOrder =** 
-
-    **CALCULATETABLE(**
-
-        **VALUES(Sales\[Order Number]),**
-
-        **ALL('Date'),**
-
-        **'Date'\[YM Number] = PreviousYM**
-
-    **)**
-
-
-
-**VAR Result =** 
-
-    **INTERSECT(ListCurrentDeliveryOrder,PreviousMonthOrder)**
-
-**RETURN**
-
-    **COUNTROWS(Result)**
-
+    COUNTROWS(Result)
  
-
  
-
  
-
  
+ Ví dụ hàm USERELATIONSHIP 3 - Advance = 
+VAR ListYM = 
+    ADDCOLUMNS(
+        VALUES('Date'[YM Number]),
+        "@Orders",
+        VAR CurrentYM = CALCULATE(MAX('Date'[YM Number]))
+        VAR PreviousYM =  
+            CALCULATE(
+                MAX('Date'[YM Number]),
+                ALL('Date'),
+                'Date'[YM Number] < CurrentYM
+            )
+        VAR ListCurrentDeliveryOrder = 
+            CALCULATETABLE(
+                VALUES(Sales[Order Number]),
+                USERELATIONSHIP('Date'[Date],Sales[Delivery Date])
+            )
 
- **Ví dụ hàm USERELATIONSHIP 3 - Advance =** 
+        VAR PreviousMonthOrder = 
+            CALCULATETABLE(
+                VALUES(Sales[Order Number]),
+                ALL('Date'),
+                'Date'[YM Number] = PreviousYM
+            )
 
-**VAR ListYM =** 
-
-    **ADDCOLUMNS(**
-
-        **VALUES('Date'\[YM Number]),**
-
-        **"@Orders",**
-
-        **VAR CurrentYM = CALCULATE(MAX('Date'\[YM Number]))**
-
-        **VAR PreviousYM =**  
-
-            **CALCULATE(**
-
-                **MAX('Date'\[YM Number]),**
-
-                **ALL('Date'),**
-
-                **'Date'\[YM Number] < CurrentYM**
-
-            **)**
-
-        **VAR ListCurrentDeliveryOrder =** 
-
-            **CALCULATETABLE(**
-
-                **VALUES(Sales\[Order Number]),**
-
-                **USERELATIONSHIP('Date'\[Date],Sales\[Delivery Date])**
-
-            **)**
-
-
-
-        **VAR PreviousMonthOrder =** 
-
-            **CALCULATETABLE(**
-
-                **VALUES(Sales\[Order Number]),**
-
-                **ALL('Date'),**
-
-                **'Date'\[YM Number] = PreviousYM**
-
-            **)**
+        VAR Result = 
+            INTERSECT(ListCurrentDeliveryOrder,PreviousMonthOrder)
+        RETURN
+            COUNTROWS(Result)
+    )
+RETURN
+    SUMX(ListYM,[@Orders])
+```
+### 11.3. Hàm TREATAS
+``` dax
+Demo TREATAS 1 = 
+CALCULATE(
+    [Sales Amount],
+    TREATAS({"Red","Blue"},'Product'[Color])
+)
 
 
+Demo TREATAS 2 = 
+-- Thay vì dùng TREATAS thì có thể dùng cách này
+CALCULATE(
+    [Sales Amount],
+    ALL('Product'[Color]),
+    'Product'[Color] IN {"Red","Blue"}
+)
+```
 
-        **VAR Result =** 
+## CHAPTER 14: CÁC HÀM SQL TRONG DAX
 
-            **INTERSECT(ListCurrentDeliveryOrder,PreviousMonthOrder)**
-
-        **RETURN**
-
-            **COUNTROWS(Result)**
-
-    **)**
-
-**RETURN**
-
-    **SUMX(ListYM,\[@Orders])**
-
- 
-
-**CHAPTER 14: CÁC HÀM SQL TRONG DAX**
-
-
-
-**DEFINE**
-
-	**VAR A = SUMMARIZE('Sales','Product'\[Category],'Date'\[Year])**
-
-	**VAR B =** 
-
-		**ADDCOLUMNS(**
-
-			**A,**
-
-			**"@Sales",**
-
-			**\[Sales Amount]**
-
-		**)**
-
+``` dax
+DEFINE
+	VAR A = SUMMARIZE('Sales','Product'[Category],'Date'[Year])
+	VAR B = 
+		ADDCOLUMNS(
+			A,
+			"@Sales",
+			[Sales Amount]
+		)
 		
-
-	**-- Ví dụ về hàm OFFSET (Lấy Sales Previous Year)**
-
-	**VAR C =**
-
-		**ADDCOLUMNS(**
-
-			**B,**
-
-			**"@Sales PY",**
-
-			**VAR SalesPY =** 
-
-				**OFFSET(**
-
-					**-1,**
-
-					**B,**
-
-					**ORDERBY(\[Year],ASC),**
-
-					**PARTITIONBY(\[Category]),**
-
-					**MATCHBY(\[Year])**
-
-				**)**
-
-			**RETURN**
-
-				**SUMX(SalesPY,\[@Sales])**
-
-		**)**
-
+	-- Ví dụ về hàm OFFSET (Lấy Sales Previous Year)
+	VAR C =
+		ADDCOLUMNS(
+			B,
+			"@Sales PY",
+			VAR SalesPY = 
+				OFFSET(
+					-1,
+					B,
+					ORDERBY([Year],ASC),
+					PARTITIONBY([Category]),
+					MATCHBY([Year])
+				)
+			RETURN
+				SUMX(SalesPY,[@Sales])
+		)
 	
-
-	**-- Ví dụ hàm Index (Lấy Sales của năm thứ 2 kinh doanh của mỗi Category)**
-
+	-- Ví dụ hàm Index (Lấy Sales của năm thứ 2 kinh doanh của mỗi Category)
 	
-
-	**VAR D =** 
-
-		**ADDCOLUMNS(**
-
-			**C,**
-
-			**"@Sales Second Year",**
-
-			**VAR SalesSecondYear =** 
-
-				**INDEX(2,C,ORDERBY(\[Year],ASC),PARTITIONBY(\[Category]),MATCHBY(\[Year]))**
-
-			**RETURN**
-
-				**SUMX(SalesSecondYear,\[@Sales])**
-
-		**)**
-
+	VAR D = 
+		ADDCOLUMNS(
+			C,
+			"@Sales Second Year",
+			VAR SalesSecondYear = 
+				INDEX(2,C,ORDERBY([Year],ASC),PARTITIONBY([Category]),MATCHBY([Year]))
+			RETURN
+				SUMX(SalesSecondYear,[@Sales])
+		)
 	
+	-- Ví dụ hàm WINDOW (Tính Sales AVG 3Year)
+	VAR E = 
+		ADDCOLUMNS(
+			D,
+			"@AVG_3Year",
+			VAR Sales3Year = 
+				WINDOW(
+					-2,REL,
+					0,REL,
+					D,
+					ORDERBY([Year],ASC),PARTITIONBY([Category]),MATCHBY([Year])
+				)
+			RETURN
+				AVERAGEX(Sales3Year,[@Sales])
+		)
+EVALUATE E
+ORDER BY [Category], [Year] 
+```
+### Ví dụ về MEASURE cho hàm WINDOW
 
-	**-- Ví dụ hàm WINDOW (Tính Sales AVG 3Year)**
-
-	**VAR E =** 
-
-		**ADDCOLUMNS(**
-
-			**D,**
-
-			**"@AVG\_3Year",**
-
-			**VAR Sales3Year =** 
-
-				**WINDOW(**
-
-					**-2,REL,**
-
-					**0,REL,**
-
-					**D,**
-
-					**ORDERBY(\[Year],ASC),PARTITIONBY(\[Category]),MATCHBY(\[Year])**
-
-				**)**
-
-			**RETURN**
-
-				**AVERAGEX(Sales3Year,\[@Sales])**
-
-		**)**
-
-**EVALUATE E**
-
-**ORDER BY \[Category], \[Year]** 
-
-
-
-**Sales AVG 3 Year (WINDOW) =** 
-
-**VAR LastYear = MAX('Date'\[Year])**
-
-**VAR List3Year =** 
-
-    **WINDOW(**
-
-        **-2,REL,**
-
-        **0,REL,**
-
-        **CALCULATETABLE(**
-
-            **VALUES('Date'\[Year]),**
-
-            **ALL('Date'),**
-
-            **'Date'\[Year] <= LastYear**
-
-        **),**
-
-        **ORDERBY(\[Year])**
-
-    **)**
-
-**RETURN**
-
-    **CALCULATE(**
-
-        **AVERAGEX(List3Year,\[Sales Amount]),**
-
-        **ALL('Date')**
-
-    **)**
+``` dax
+Sales AVG 3 Year (WINDOW) = 
+VAR LastYear = MAX('Date'[Year])
+VAR List3Year = 
+    WINDOW(
+        -2,REL,
+        0,REL,
+        CALCULATETABLE(
+            VALUES('Date'[Year]),
+            ALL('Date'),
+            'Date'[Year] <= LastYear
+        ),
+        ORDERBY([Year])
+    )
+RETURN
+    CALCULATE(
+        AVERAGEX(List3Year,[Sales Amount]),
+        ALL('Date')
+    )
+```
+``` dax
+Sales AVG 3 Year (TOPN) = 
+VAR LastYear = MAX('Date'[Year])
+VAR List3Year = 
+    TOPN(
+        3,
+        CALCULATETABLE(
+            VALUES('Date'[Year]),
+            ALL('Date'),
+            'Date'[Year] <= LastYear
+        ),
+        [Year], DESC
+    )
+RETURN
+    // CONCATENATEX(FILTER(List3Year,NOT(ISBLANK([Year]))) ,[Year],", ")
+    AVERAGEX(List3Year,[Sales Amount])
+```
 
 
-
-**Sales AVG 3 Year (TOPN) =** 
-
-**VAR LastYear = MAX('Date'\[Year])**
-
-**VAR List3Year =** 
-
-    **TOPN(**
-
-        **3,**
-
-        **CALCULATETABLE(**
-
-            **VALUES('Date'\[Year]),**
-
-            **ALL('Date'),**
-
-            **'Date'\[Year] <= LastYear**
-
-        **),**
-
-        **\[Year], DESC**
-
-    **)**
-
-**RETURN**
-
-    **// CONCATENATEX(FILTER(List3Year,NOT(ISBLANK(\[Year]))) ,\[Year],", ")**
-
-    **AVERAGEX(List3Year,\[Sales Amount])**
+## Chapter 15: Đáp án tập Chương 10, 11
 
 
-
-**Chapter 15: Đáp án tập Chương 10, 11**
-
-
-
-**DEFINE**
-
-	**VAR A = SUMMARIZE(Sales,'Product'\[Category],'Date'\[Year])**
-
+``` dax
+DEFINE
+	VAR A = SUMMARIZE(Sales,'Product'[Category],'Date'[Year])
 	
-
-	**VAR \_Cau1\_Phan1 =** 
-
-		**ADDCOLUMNS(**
-
-			**A,**
-
-			**"@Sales",**
-
-			**\[Sales Amount]**
-
-		**)**
-
+	VAR _Cau1_Phan1 = 
+		ADDCOLUMNS(
+			A,
+			"@Sales",
+			[Sales Amount]
+		)
 		
-
 		
-
-	**VAR \_Cau2\_Phan1 =** 
-
-		**ADDCOLUMNS(**
-
-			**\_Cau1\_Phan1,**
-
-			**"CategoryPercentage",**
-
-			**VAR \_CurrentYear = \[Year]**
-
-			**VAR \_SalesYear =** 
-
-				**SUMX(**
-
-					**FILTER(**
-
-						**\_Cau1\_Phan1,**
-
-						**\[Year] = \_CurrentYear**
-
-					**),**
-
-					**\[@Sales]**
-
-				**)**
-
-			**VAR \_Result =** 
-
-				**DIVIDE(\[@Sales],\_SalesYear)**
-
-			**RETURN \_Result**
-
-		**)**
-
+	VAR _Cau2_Phan1 = 
+		ADDCOLUMNS(
+			_Cau1_Phan1,
+			"CategoryPercentage",
+			VAR _CurrentYear = [Year]
+			VAR _SalesYear = 
+				SUMX(
+					FILTER(
+						_Cau1_Phan1,
+						[Year] = _CurrentYear
+					),
+					[@Sales]
+				)
+			VAR _Result = 
+				DIVIDE([@Sales],_SalesYear)
+			RETURN _Result
+		)
 		
-
 		
-
-	**VAR \_Cau3\_Phan1 =** 
-
-		**ADDCOLUMNS(**
-
-			**\_Cau2\_Phan1,**
-
-			**"CategoryPercentageMeasure",**
-
-			**DIVIDE(**
-
-				**\[Sales Amount],**
-
-				**CALCULATE(**
-
-					**\[Sales Amount],**
-
-					**ALL('Product'\[Category])**
-
-				**)**
-
-			**)**
-
+	VAR _Cau3_Phan1 = 
+		ADDCOLUMNS(
+			_Cau2_Phan1,
+			"CategoryPercentageMeasure",
+			DIVIDE(
+				[Sales Amount],
+				CALCULATE(
+					[Sales Amount],
+					ALL('Product'[Category])
+				)
+			)
 			
-
-		**)**
-
+		)
 		
+	VAR _Cau4_Phan1 = 
+		GROUPBY(_Cau3_Phan1,[Category],"@Sales",SUMX(CURRENTGROUP(),[@Sales]))
 
-	**VAR \_Cau4\_Phan1 =** 
+EVALUATE _Cau4_Phan1
+```
+### - Sử dụng file Practice 2
+``` dax
+DEFINE	
+	VAR _Cau7_Phan1 = 
+		ADDCOLUMNS(
+			SUMMARIZE(Sales,Product[Brand], Promotion[Promotion Category], 'Date'[Calendar Year Month]),
+			"%DT_Campaign",
+			VAR _CurrentYear= VALUE(RIGHT([Calendar Year Month],4))
+			RETURN
+				DIVIDE(
+					[Sales Amount],
+					CALCULATE(
+						[Sales Amount],
+						ALL('Date'),
+						ALL('Product'[Brand]),
+						'Date'[Calendar Year Number] = _CurrentYear
+					)
+				)
+		)
 
-		**GROUPBY(\_Cau3\_Phan1,\[Category],"@Sales",SUMX(CURRENTGROUP(),\[@Sales]))**
+	VAR _Cau8_Phan1 = 
+		GROUPBY(_Cau7_Phan1,[Brand],[Calendar Year Month],"Group_Brand_YM",SUMX(CURRENTGROUP(),[@Sales]))
 
+	VAR _Cau9_Phan1 = 
+		ADDCOLUMNS(
+			SUMMARIZE(Sales,Customer[CountryRegion],'Date'[Calendar Year Month Number]),
+			"@Sales",[Sales Amount],
+			"AccumulatedSales1",
+			VAR CurrentCYM = [Calendar Year Month Number]
+			RETURN
+				CALCULATE(
+					[Sales Amount],
+					ALL('Date'),
+					'Date'[Calendar Year Month Number] <= CurrentCYM
+				),
+			"AccumulatedSales2",
+				SUMX(
+					WINDOW(
+						0,ABS,
+						0,REL,
+						ALL('Date'[Calendar Year Month Number]),
+						ORDERBY('Date'[Calendar Year Month Number],ASC)
+					),
+					[Sales Amount]
+				)
+		)
 
-
-**EVALUATE \_Cau4\_Phan1**
-
-
-
-	
-
-**DEFINE**	
-
-	**VAR \_Cau7\_Phan1 =** 
-
-		**ADDCOLUMNS(**
-
-			**SUMMARIZE(Sales,Product\[Brand], Promotion\[Promotion Category], 'Date'\[Calendar Year Month]),**
-
-			**"%DT\_Campaign",**
-
-			**VAR \_CurrentYear= VALUE(RIGHT(\[Calendar Year Month],4))**
-
-			**RETURN**
-
-				**DIVIDE(**
-
-					**\[Sales Amount],**
-
-					**CALCULATE(**
-
-						**\[Sales Amount],**
-
-						**ALL('Date'),**
-
-						**ALL('Product'\[Brand]),**
-
-						**'Date'\[Calendar Year Number] = \_CurrentYear**
-
-					**)**
-
-				**)**
-
-		**)**
-
-
-
-	**VAR \_Cau8\_Phan1 =** 
-
-		**GROUPBY(\_Cau7\_Phan1,\[Brand],\[Calendar Year Month],"Group\_Brand\_YM",SUMX(CURRENTGROUP(),\[@Sales]))**
-
-
-
-	**VAR \_Cau9\_Phan1 =** 
-
-		**ADDCOLUMNS(**
-
-			**SUMMARIZE(Sales,Customer\[CountryRegion],'Date'\[Calendar Year Month Number]),**
-
-			**"@Sales",\[Sales Amount],**
-
-			**"AccumulatedSales1",**
-
-			**VAR CurrentCYM = \[Calendar Year Month Number]**
-
-			**RETURN**
-
-				**CALCULATE(**
-
-					**\[Sales Amount],**
-
-					**ALL('Date'),**
-
-					**'Date'\[Calendar Year Month Number] <= CurrentCYM**
-
-				**),**
-
-			**"AccumulatedSales2",**
-
-				**SUMX(**
-
-					**WINDOW(**
-
-						**0,ABS,**
-
-						**0,REL,**
-
-						**ALL('Date'\[Calendar Year Month Number]),**
-
-						**ORDERBY('Date'\[Calendar Year Month Number],ASC)**
-
-					**),**
-
-					**\[Sales Amount]**
-
-				**)**
-
-		**)**
-
-
-
-		**VAR \_Cau9\_Phan1\_1 =** 
-
-			**ADDCOLUMNS(**
-
-				**\_Cau9\_Phan1,**
-
-				**"@CheckGrow",**
-
+		VAR _Cau9_Phan1_1 = 
+			ADDCOLUMNS(
+				_Cau9_Phan1,
+				"@CheckGrow",
 			
-
-				**VAR CurrentSales = \[Sales Amount]**
-
-				**VAR PreviousSales =** 
-
-					**SUMX(**
-
-						**OFFSET(-1,\_Cau9\_Phan1,ORDERBY(\[Calendar Year Month Number],ASC), PARTITIONBY(\[CountryRegion])),**
-
-						**\[Sales Amount]**
-
-					**)**
-
-				**RETURN**	
-
-					**IF(CurrentSales > PreviousSales,1,0)**
-
-			**)**
-
+				VAR CurrentSales = [Sales Amount]
+				VAR PreviousSales = 
+					SUMX(
+						OFFSET(-1,_Cau9_Phan1,ORDERBY([Calendar Year Month Number],ASC), PARTITIONBY([CountryRegion])),
+						[Sales Amount]
+					)
+				RETURN	
+					IF(CurrentSales > PreviousSales,1,0)
+			)
 			
-
-		**VAR \_Cau10\_Phan1\_Cach1 =** 
-
-			**ADDCOLUMNS(**
-
-				**\_Cau9\_Phan1\_1,**
-
-				**"@A",**
-
-				**VAR \_CurrentCountryRegion = \[CountryRegion]**
-
-				**VAR \_CurrentYM = \[Calendar Year Month Number]**
-
-				**VAR LastActiveYM =** 
-
-					**MAXX(**
-
-						**FILTER(**
-
-							**\_Cau9\_Phan1\_1,**
-
-							**\[CountryRegion] = \_CurrentCountryRegion \&\&**
-
-							**\[Calendar Year Month Number] < \_CurrentYM \&\&** 
-
-							**\[@CheckGrow] = 1**
-
-						**),**
-
-						**\[Calendar Year Month Number]**
-
-					**)**
-
-				**VAR LastUnActiveYM =** 
-
-					**MAXX(**
-
-						**FILTER(**
-
-							**\_Cau9\_Phan1\_1,**
-
-							**\[CountryRegion] = \_CurrentCountryRegion \&\&**
-
-							**\[Calendar Year Month Number] < \_CurrentYM \&\&**
-
-							**\[@CheckGrow] = 0**
-
-						**),**
-
-						**\[Calendar Year Month Number]**
-
-					**)**
-
-				**RETURN**
-
-					**IF(**
-
-						**\[@CheckGrow] = 1,**
-
-						**SUMX(**
-
-							**FILTER(**
-
-								**\_Cau9\_Phan1\_1,**
-
-								**\[CountryRegion] = \_CurrentCountryRegion \&\&**
-
-								**\[@CheckGrow] = 1 \&\&**
-
-								**\[Calendar Year Month Number] > LastUnActiveYM \&\&**
-
-								**\[Calendar Year Month Number] <= \_CurrentYM**
-
-							**),**
-
-							**\[@Sales]**
-
-						**)**
-
-					**)**
-
-			**)**
-
-
-
-**EVALUATE \_Cau10\_Phan1\_Cach1**
-
-**ORDER BY \[CountryRegion], \[Calendar Year Month Number]**
-
-
-
-
-
-
-
-
-
-**VAR \_Cau10\_Phan1\_Cach2 =** 
-
-			**ADDCOLUMNS(**
-
-				**\_Cau9\_Phan1,**
-
-				**"AccumulatedSalesWithCondition",**
-
-				**VAR CurrentYM = \[Calendar Year Month Number]**
-
-				**VAR CurrentSales = \[@Sales]**
-
-				**VAR \_ListYM =** 
-
-						**CALCULATETABLE(**
-
-							**VALUES('Date'\[Calendar Year Month Number]),**
-
-							**'Date'\[Calendar Year Month Number] < CurrentYM**
-
-						**)**
-
+		VAR _Cau10_Phan1_Cach1 = 
+			ADDCOLUMNS(
+				_Cau9_Phan1_1,
+				"@A",
+				VAR _CurrentCountryRegion = [CountryRegion]
+				VAR _CurrentYM = [Calendar Year Month Number]
+				VAR LastActiveYM = 
+					MAXX(
+						FILTER(
+							_Cau9_Phan1_1,
+							[CountryRegion] = _CurrentCountryRegion &&
+							[Calendar Year Month Number] < _CurrentYM && 
+							[@CheckGrow] = 1
+						),
+						[Calendar Year Month Number]
+					)
+				VAR LastUnActiveYM = 
+					MAXX(
+						FILTER(
+							_Cau9_Phan1_1,
+							[CountryRegion] = _CurrentCountryRegion &&
+							[Calendar Year Month Number] < _CurrentYM &&
+							[@CheckGrow] = 0
+						),
+						[Calendar Year Month Number]
+					)
+				RETURN
+					IF(
+						[@CheckGrow] = 1,
+						SUMX(
+							FILTER(
+								_Cau9_Phan1_1,
+								[CountryRegion] = _CurrentCountryRegion &&
+								[@CheckGrow] = 1 &&
+								[Calendar Year Month Number] > LastUnActiveYM &&
+								[Calendar Year Month Number] <= _CurrentYM
+							),
+							[@Sales]
+						)
+					)
+			)
+
+EVALUATE _Cau10_Phan1_Cach1
+ORDER BY [CountryRegion], [Calendar Year Month Number]
+
+
+
+
+VAR _Cau10_Phan1_Cach2 = 
+			ADDCOLUMNS(
+				_Cau9_Phan1,
+				"AccumulatedSalesWithCondition",
+				VAR CurrentYM = [Calendar Year Month Number]
+				VAR CurrentSales = [@Sales]
+				VAR _ListYM = 
+						CALCULATETABLE(
+							VALUES('Date'[Calendar Year Month Number]),
+							'Date'[Calendar Year Month Number] < CurrentYM
+						)
 					
-
-				**VAR LastUnActiveMonth =** 
-
-						**MAXX(**
-
-							**FILTER(**
-
-								**\_ListYM,**
-
-								**VAR PreviousSales =** 
-
-									**CALCULATE(**
-
-										**\[Sales Amount],**
-
-										**OFFSET(-1,\_ListYM,ORDERBY(\[Calendar Year Month Number],ASC))**
-
-									**)**
-
-								**RETURN**
-
-									**PreviousSales > CurrentSales**
-
-							**),**
-
-							**\[Calendar Year Month Number]**
-
-						**)**
-
-				**RETURN**
-
-					**SUMX(**
-
-						**FILTER(**
-
-							**\_ListYM,**
-
-							**\[Calendar Year Month Number] > LastUnActiveMonth \&\&** 
-
-							**\[Calendar Year Month Number] <= CurrentYM**
-
-						**),**
-
-						**\[Sales Amount]**
-
-					**)**
-
-			**)**
-
+				VAR LastUnActiveMonth = 
+						MAXX(
+							FILTER(
+								_ListYM,
+								VAR PreviousSales = 
+									CALCULATE(
+										[Sales Amount],
+										OFFSET(-1,_ListYM,ORDERBY([Calendar Year Month Number],ASC))
+									)
+								RETURN
+									PreviousSales > CurrentSales
+							),
+							[Calendar Year Month Number]
+						)
+				RETURN
+					SUMX(
+						FILTER(
+							_ListYM,
+							[Calendar Year Month Number] > LastUnActiveMonth && 
+							[Calendar Year Month Number] <= CurrentYM
+						),
+						[Sales Amount]
+					)
+			)
 			
 
+EVALUATE _Cau10_Phan1_Cach2
+ORDER BY [CountryRegion], [Calendar Year Month Number]
+```
+### 15.1.2. Bài tập phần 2
+``` dax
+Cau 2 - Phan 2 = 
+COUNTROWS(
+    FILTER(
+        VALUES('Product'[Product Name]),
+        [Sales Amount] > 10000
+    )
+)
+```
+``` dax
+Cau 3 - Phan 2 = 
+VAR ListProduct = 
+    FILTER(
+        ADDCOLUMNS(
+            VALUES('Product'[Product Name]),
+            "@Sales",[Sales Amount]
+        ),
+        [@Sales] > 10000
+    )
+RETURN
+    AVERAGEX(ListProduct,[@Sales])
+```
+``` dax
+Cau 4 - Phan 2 = 
+    IF(
+        [Sales Amount] > 0,
+        CONCATENATEX(
+            TOPN(
+                1,
+                VALUES('Product'[Product Name]),
+                [Sales Amount],DESC
+            ),
+            [Product Name]
+        )
+    )
+```
+``` dax
+Cau 5 - Phan 2 = 
+     IF(
+        [Sales Amount] > 0,
+        CONCATENATEX(
+            TOPN(
+                1,
+                FILTER(
+                    ADDCOLUMNS(
+                        VALUES('Product'[Product Name]),
+                        "@Sales",[Sales Amount]
+                    ),
+                    [@Sales] > 0
+                ),
+                [@Sales],ASC
+            ),
+            [Product Name]
+        )
+    )
+```
+``` dax
+Cau 6 - Phan 2 = 
+VAR TotalSales = [Sales Amount]
+VAR Top3Category =
+    TOPN (
+        [Top N Dynamic Value],
+        ADDCOLUMNS (
+            SUMMARIZE ( Sales, 'Product'[Category] ),
+            "@Sales", [Sales Amount]
+        ),
+        [@Sales], DESC
+    )
+VAR AddRankNumber =
+    UNION (
+        ADDCOLUMNS (
+            Top3Category,
+            "@SalesContribution", DIVIDE ( [@Sales], TotalSales ),
+            "@Rank",
+                VAR CurrentSales = [@Sales]
+                RETURN
+                    RANKX ( Top3Category, [@Sales], CurrentSales, DESC )
+        ),
+        VAR OtherSales =
+            TotalSales - SUMX ( Top3Category, [@Sales] )
+        RETURN
+            FILTER(
+                {
+                    ( "Other", OtherSales, DIVIDE ( OtherSales, TotalSales ), [Top N Dynamic Value] + 1 )
+                },
+                [Value2] > 0
+            )
+    )
+VAR Result = 
+    CONCATENATEX (
+        AddRankNumber,
+        [@Rank] & ". " & [Category] & ": "
+            & FORMAT ( [@Sales], "#,##0" ) & " ("
+            & FORMAT ( [@SalesContribution], "Percent" ) & ")",
+        UNICHAR ( 10 ),
+        [@Rank], ASC
+    )
+RETURN
+    Result
+```
+``` dax
+Cau 10 = 
+VAR Top2Customer = 
+    TOPN(
+        2,
+        VALUES(Sales[CustomerKey]),
+        [Sales Amount],
+        DESC
+    )
+VAR Top3Product = 
+    CALCULATETABLE(
+        TOPN(
+            3,
+            ADDCOLUMNS(
+                SUMMARIZE(Sales, 'Product'[Product Name]),
+                "@Sales",
+                [Sales Amount]
+            ),
+            [@Sales],DESC
+        ),
+        INTERSECT(
+            VALUES(Sales[CustomerKey]),
+            Top2Customer
+        )
+    )
+VAR AddRank = 
+    ADDCOLUMNS(
+        Top3Product,
+        "@Rank",
+        RANK( DENSE,Top3Product, ORDERBY([@Sales],DESC))
+    )
+VAR Result = 
+    CONCATENATEX(
+        AddRank,
+        [@Rank]&". "&[Product Name]&" : "&FORMAT([@Sales],"#,##0"),
+        UNICHAR(10),
+        [@Rank], ASC
+    )
+RETURN
+    Result
+```
 
-
-**EVALUATE \_Cau10\_Phan1\_Cach2**
-
-**ORDER BY \[CountryRegion], \[Calendar Year Month Number]**
-
-
-
-**Cau 2 - Phan 2 =** 
-
-**COUNTROWS(**
-
-    **FILTER(**
-
-        **VALUES('Product'\[Product Name]),**
-
-        **\[Sales Amount] > 10000**
-
-    **)**
-
-**)**
-
-
-
-**Cau 3 - Phan 2 =** 
-
-**VAR ListProduct =** 
-
-    **FILTER(**
-
-        **ADDCOLUMNS(**
-
-            **VALUES('Product'\[Product Name]),**
-
-            **"@Sales",\[Sales Amount]**
-
-        **),**
-
-        **\[@Sales] > 10000**
-
-    **)**
-
-**RETURN**
-
-    **AVERAGEX(ListProduct,\[@Sales])**
-
-
-
-**Cau 4 - Phan 2 =** 
-
-    **IF(**
-
-        **\[Sales Amount] > 0,**
-
-        **CONCATENATEX(**
-
-            **TOPN(**
-
-                **1,**
-
-                **VALUES('Product'\[Product Name]),**
-
-                **\[Sales Amount],DESC**
-
-            **),**
-
-            **\[Product Name]**
-
-        **)**
-
-    **)**
-
-
-
-**Cau 5 - Phan 2 =** 
-
-     **IF(**
-
-        **\[Sales Amount] > 0,**
-
-        **CONCATENATEX(**
-
-            **TOPN(**
-
-                **1,**
-
-                **FILTER(**
-
-                    **ADDCOLUMNS(**
-
-                        **VALUES('Product'\[Product Name]),**
-
-                        **"@Sales",\[Sales Amount]**
-
-                    **),**
-
-                    **\[@Sales] > 0**
-
-                **),**
-
-                **\[@Sales],ASC**
-
-            **),**
-
-            **\[Product Name]**
-
-        **)**
-
-    **)**
-
-
-
-**Cau 6 - Phan 2 =** 
-
-**VAR TotalSales = \[Sales Amount]**
-
-**VAR Top3Category =**
-
-    **TOPN (**
-
-        **\[Top N Dynamic Value],**
-
-        **ADDCOLUMNS (**
-
-            **SUMMARIZE ( Sales, 'Product'\[Category] ),**
-
-            **"@Sales", \[Sales Amount]**
-
-        **),**
-
-        **\[@Sales], DESC**
-
-    **)**
-
-**VAR AddRankNumber =**
-
-    **UNION (**
-
-        **ADDCOLUMNS (**
-
-            **Top3Category,**
-
-            **"@SalesContribution", DIVIDE ( \[@Sales], TotalSales ),**
-
-            **"@Rank",**
-
-                **VAR CurrentSales = \[@Sales]**
-
-                **RETURN**
-
-                    **RANKX ( Top3Category, \[@Sales], CurrentSales, DESC )**
-
-        **),**
-
-        **VAR OtherSales =**
-
-            **TotalSales - SUMX ( Top3Category, \[@Sales] )**
-
-        **RETURN**
-
-            **FILTER(**
-
-                **{**
-
-                    **( "Other", OtherSales, DIVIDE ( OtherSales, TotalSales ), \[Top N Dynamic Value] + 1 )**
-
-                **},**
-
-                **\[Value2] > 0**
-
-            **)**
-
-    **)**
-
-**VAR Result =** 
-
-    **CONCATENATEX (**
-
-        **AddRankNumber,**
-
-        **\[@Rank] \& ". " \& \[Category] \& ": "**
-
-            **\& FORMAT ( \[@Sales], "#,##0" ) \& " ("**
-
-            **\& FORMAT ( \[@SalesContribution], "Percent" ) \& ")",**
-
-        **UNICHAR ( 10 ),**
-
-        **\[@Rank], ASC**
-
-    **)**
-
-**RETURN**
-
-    **Result**
-
-
-
-**Cau 10 =** 
-
-**VAR Top2Customer =** 
-
-    **TOPN(**
-
-        **2,**
-
-        **VALUES(Sales\[CustomerKey]),**
-
-        **\[Sales Amount],**
-
-        **DESC**
-
-    **)**
-
-**VAR Top3Product =** 
-
-    **CALCULATETABLE(**
-
-        **TOPN(**
-
-            **3,**
-
-            **ADDCOLUMNS(**
-
-                **SUMMARIZE(Sales, 'Product'\[Product Name]),**
-
-                **"@Sales",**
-
-                **\[Sales Amount]**
-
-            **),**
-
-            **\[@Sales],DESC**
-
-        **),**
-
-        **INTERSECT(**
-
-            **VALUES(Sales\[CustomerKey]),**
-
-            **Top2Customer**
-
-        **)**
-
-    **)**
-
-**VAR AddRank =** 
-
-    **ADDCOLUMNS(**
-
-        **Top3Product,**
-
-        **"@Rank",**
-
-        **RANK( DENSE,Top3Product, ORDERBY(\[@Sales],DESC))**
-
-    **)**
-
-**VAR Result =** 
-
-    **CONCATENATEX(**
-
-        **AddRank,**
-
-        **\[@Rank]\&". "\&\[Product Name]\&" : "\&FORMAT(\[@Sales],"#,##0"),**
-
-        **UNICHAR(10),**
-
-        **\[@Rank], ASC**
-
-    **)**
-
-**RETURN**
-
-    **Result**
-
-
-
-**Cau 1 =** 
-
-**-- Added Question: Số Sales trong 2 năm của các sản phẩm bán trong năm 2007, 2009 >= 20000**
-
-**VAR ListYearCondition = {2007,2009}**
-
-**RETURN**
-
-    **COUNTROWS(**
-
-        **CALCULATETABLE(**
-
-            **FILTER(**
-
-                **VALUES('Product'\[ProductKey]),**
-
-                **VAR SalesYear =** 
-
-                    **COUNTROWS(**
-
-                        **INTERSECT(**
-
-                            **CALCULATETABLE(SUMMARIZE(Sales,'Date'\[Calendar Year Number])),**
-
-                            **ListYearCondition**
-
-                        **)**
-
-                    **)** 
-
-                **VAR SalesTwoYear =** 
-
-                    **CALCULATE(**
-
-                        **\[Sales Amount],**
-
-                        **TREATAS(ListYearCondition,'Date'\[Calendar Year Number])**
-
-                    **)**
-
-                **RETURN**
-
-                    **SalesYear = 2 \&\& SalesTwoYear >= 20000**
-
-            **),**
-
-            **ALL('Date')**
-
-        **)**
-
-    **)**
-
-
-
-**Cau 2 - Phan 3 =** 
-
-**VAR ListYearCondition = {2007,2009}**
-
-**VAR ListProduct =** 
-
-    **CALCULATETABLE(**
-
-        **FILTER(**
-
-            **VALUES('Product'\[ProductKey]),**
-
-            **VAR SalesYear =** 
-
-                **COUNTROWS(**
-
-                    **INTERSECT(**
-
-                        **CALCULATETABLE(SUMMARIZE(Sales,'Date'\[Calendar Year Number])),**
-
-                        **ListYearCondition**
-
-                    **)**
-
-                **)** 
-
-                
-
-            **RETURN**
-
-                **SalesYear = 2**
-
-        **),**
-
-        **ALL('Date')**
-
-    **)**
-
-
-
-**RETURN**
-
-    **CALCULATE(**
-
-        **\[Sales Amount],**
-
-        **// TREATAS(ListProduct,'Product'\[ProductKey])**
-
-        **ListProduct**
-
-    **)**
-
-
-
-**Cau 3 - Phan 3 =** 
-
-**VAR ListYearCondition = {2007,2009}**
-
-**VAR ListProduct =** 
-
-    **CALCULATETABLE(**
-
-        **FILTER(**
-
-            **VALUES('Product'\[ProductKey]),**
-
-            **VAR \_ListYear = CALCULATETABLE(SUMMARIZE(Sales,'Date'\[Calendar Year Number]))**
-
-            
-
-            **VAR FirstCondition =** 
-
-                **COUNTROWS(FILTER(\_ListYear,\[Calendar Year Number] = 2007)) = 1**
-
-                
-
-            **VAR SecondCondition =** 
-
-                 **COUNTROWS(FILTER(\_ListYear,\[Calendar Year Number] = 2009)) = 0**
-
-            **RETURN**
-
-                **AND(FirstCondition,SecondCondition)**
-
-        **),**
-
-        **ALL('Date')**
-
-    **)**
-
-
-
-**RETURN**
-
-    **COUNTROWS(ListProduct)**
-
-
-
-**Cau 4 - Phan 3 =** 
-
-**VAR ListYearCondition = {2007,2009}**
-
-**VAR ListProduct =** 
-
-    **CALCULATETABLE(**
-
-        **FILTER(**
-
-            **VALUES('Product'\[ProductKey]),**
-
-            **VAR \_ListYear = CALCULATETABLE(SUMMARIZE(Sales,'Date'\[Calendar Year Number]))**
-
-            
-
-            **VAR FirstCondition =** 
-
-                **COUNTROWS(FILTER(\_ListYear,\[Calendar Year Number] = 2007)) = 1**
-
-                
-
-            **VAR SecondCondition =** 
-
-                 **COUNTROWS(FILTER(\_ListYear,\[Calendar Year Number] = 2009)) = 0**
-
-            **RETURN**
-
-                **AND(FirstCondition,SecondCondition)**
-
-        **),**
-
-        **ALL('Date')**
-
-    **)**
-
-
-
-**RETURN**
-
-    **SUMX(ListProduct,\[Sales Amount])**
-
-
-
-**Cau 5 - Phan 3 =** 
-
-**VAR ListYearCondition = {2007,2008,2009}**
-
-**RETURN**
-
-    **COUNTROWS(**
-
-        **CALCULATETABLE(**
-
-            **FILTER(**
-
-                **VALUES('Sales'\[ProductKey]),**
-
-                **COUNTROWS(**
-
-                    **CALCULATETABLE(SUMMARIZE(Sales,'Date'\[Calendar Year Number]))**
-
-                **) = 3**
-
-            **),**
-
-            **ALL('Date'),**
-
-            **TREATAS(ListYearCondition,'Date'\[Calendar Year Number])**
-
-        **)**
-
-    **)**
-
-
-
-**Cau 7.1 - Phan 3 =** 
-
-**VAR ListProduct =** 
-
-    **CALCULATETABLE(**
-
-        **FILTER(**
-
-            **VALUES(Sales\[CustomerKey]),**
-
-            **COUNTROWS(CALCULATETABLE(SUMMARIZE(Sales,Promotion\[Promotion Category]))) = 2**
-
-        **),**
-
-        **ALL('Date'),**
-
-        **'Date'\[Calendar Year Number] IN {2007,2008}**
-
-    **)**
-
-**RETURN**
-
-    **COUNTROWS(ListProduct)**
-
-
-
-**Cau 7.2 - Phan 3 =** 
-
-**VAR ListCondition = {2007,2008}**
-
-**VAR ListProduct =** 
-
-    **CALCULATETABLE(**
-
-        **FILTER(**
-
-            **VALUES(Sales\[CustomerKey]),**
-
-            **VAR \_ListYear =** 
-
-                **FILTER(**
-
-                    **CALCULATETABLE(SUMMARIZE(Sales,'Date'\[Calendar Year Number])),**
-
-                    **CALCULATE(COUNTROWS(SUMMARIZE(Sales,Promotion\[Promotion Category]))) = 2**
-
-                **)**
-
-            **RETURN**
-
-                **COUNTROWS(\_ListYear) = COUNTROWS(ListCondition)**
-
-        **),**
-
-        **ALL('Date'),**
-
-        **'Date'\[Calendar Year Number] IN {2007,2008}**
-
-    **)**
-
-**RETURN**
-
-    **COUNTROWS(ListProduct)**
-
-
-
-**Cau 8.1 - Phan 3 =** 
-
-**VAR ListProduct =** 
-
-    **CALCULATETABLE(**
-
-        **FILTER(**
-
-            **VALUES(Sales\[CustomerKey]),**
-
-            **COUNTROWS(CALCULATETABLE(SUMMARIZE(Sales,Promotion\[Promotion Category]))) = 2**
-
-        **),**
-
-        **ALL('Date'),**
-
-        **'Date'\[Calendar Year Number] IN {2007,2008}**
-
-    **)**
-
-**RETURN**
-
-    **SUMX(ListProduct, \[Sales Amount])**
-
-
-
-**Cau 8.2 - Phan 3 =** 
-
-**VAR ListCondition = {2007,2008}**
-
-**VAR ListProduct =** 
-
-    **CALCULATETABLE(**
-
-        **FILTER(**
-
-            **VALUES(Sales\[CustomerKey]),**
-
-            **VAR \_ListYear =** 
-
-                **FILTER(**
-
-                    **CALCULATETABLE(SUMMARIZE(Sales,'Date'\[Calendar Year Number])),**
-
-                    **CALCULATE(COUNTROWS(SUMMARIZE(Sales,Promotion\[Promotion Category]))) = 2**
-
-                **)**
-
-            **RETURN**
-
-                **COUNTROWS(\_ListYear) = COUNTROWS(ListCondition)**
-
-        **),**
-
-        **ALL('Date'),**
-
-        **'Date'\[Calendar Year Number] IN {2007,2008}**
-
-    **)**
-
-**RETURN**
-
-    **SUMX(ListProduct, \[Sales Amount])**
-
-
-
-**Chapter 11 - Cau 1 =** 
-
-**VAR Top5Customer =** 
-
-    **CALCULATETABLE(**
-
-        **TOPN(5,VALUES(Sales\[CustomerKey]),\[Sales Amount],DESC),**
-
-        **ALL('Date'),**
-
-        **INDEX(**
-
-            **1,**
-
-            **CALCULATETABLE(VALUES('Date'\[Year]),ALL('Date'),'Date'\[IsTransaction] = TRUE()),**
-
-            **ORDERBY(\[Year],ASC)**
-
-        **)**
-
-    **)**
-
-**RETURN**
-
-    **// CALCULATE(**
-
-    **//     \[Sales Amount],**
-
-    **//     TREATAS(Top5Customer,Sales\[CustomerKey])**
-
-    **// )**
-
-    **SUMX(Top5Customer,\[Sales Amount])**
-
-
-
-**Chapter 11 - Cau 2 =** 
-
-**VAR Top5Customer =** 
-
-    **CALCULATETABLE(**
-
-        **TOPN(5,VALUES(Sales\[CustomerKey]),\[Sales Amount],DESC),**
-
-        **ALL('Date'),**
-
-        **INDEX(**
-
-            **1,**
-
-            **CALCULATETABLE(VALUES('Date'\[Year]),ALL('Date'),'Date'\[IsTransaction] = TRUE()),**
-
-            **ORDERBY(\[Year],ASC)**
-
-        **)**
-
-    **)**
-
-**VAR ListBrand =** 
-
-    **CALCULATETABLE(**
-
-        **SUMMARIZE(Sales,'Product'\[Brand]),**
-
-        **TREATAS(Top5Customer,Sales\[CustomerKey])**
-
-    **)**
-
-**RETURN**
-
-    **SUMX(ListBrand,\[Sales Amount])**
-
-
-
-**Chapter 11 - Cau 3 =** 
-
-	**VAR Top3ProductByStore =** 
-
-		**GENERATE(**
-
-			**VALUES(Sales\[StoreKey]),**
-
-			**VAR Top3Product =** 
-
-				**TOPN(**
-
-					**3,VALUES(Sales\[ProductKey]),\[Sales Amount],DESC**
-
-				**)**
-
-			
-
-			**VAR \_Result =** 
-
-				**CALCULATETABLE(**
-
-					**ADDCOLUMNS(**
-
-						**VALUES(Sales\[Currency Code]),**
-
-						**"@Sales",**
-
-						**CALCULATE(SUM(Sales\[Net Sales Exchange]))**
-
-					**),**
-
-					**Top3Product**
-
-				**)**
-
-				
-
-			**RETURN**
-
-				**\_Result**
-
-		**)**
-
-**VAR GroupData =** 
-
-    **GROUPBY(Top3ProductByStore,\[Currency Code],"@Sales",SUMX(CURRENTGROUP(),\[@Sales]))**
-
-**VAR Result =** 
-
-    **CONCATENATEX(**
-
-        **GroupData,**
-
-        **\[Currency Code]\&": "\&**
-
-        **FORMAT(\[@Sales],"#,##0"),**
-
-        **UNICHAR(10),**
-
-        **\[@Sales],DESC**
-
-    **)**
-
-**RETURN**
-
-    **Result**
-
-
-
-**Chapter 11 - Cau 5 =** 
-
-    **SUMX(**
-
-        **TOPN(3,VALUES(Sales\[CustomerKey]),\[Sales Amount],DESC),**
-
-        **\[Sales Amount]**
-
-    **)**
-
-
-
-**Chapter 11 - Cau 6 =** 
-
-**VAR FirstYear =** 
-
-    **CALCULATE(**
-
-        **MIN('Date'\[Year]),**
-
-        **ALL('Date'),**
-
-        **'Date'\[IsTransaction] = TRUE()**
-
-    **)**
-
-
-
-**VAR Top5Customer =** 
-
-    **CALCULATETABLE(**
-
-        **TOPN(5,VALUES(Sales\[CustomerKey]),\[Sales Amount],DESC),**
-
-        **ALL('Date'),**
-
-        **'Date'\[Year] = FirstYear**
-
-    **)**
-
-
-
-**VAR Top1Brand =** 
-
-    **CALCULATETABLE(**
-
-        **TOPN(1,VALUES('Product'\[Brand]),\[Sales Amount],DESC),**
-
-        **ALL('Date'),**
-
-        **'Date'\[Year] = FirstYear,**
-
-        **TREATAS(Top5Customer,'Sales'\[CustomerKey])**
-
-    **)**
-
-
-
-**RETURN**
-
-    **SUMX(Top1Brand,\[Sales Amount])**
-
-
-
-**DEFINE**
-
-	**VAR MaxYear =  CALCULATE(MAX('Date'\[Year]),'Date'\[IsTransaction] = TRUE())**
-
-	**VAR ListYear =** 
-
-		**ADDCOLUMNS(**
-
-			**CALCULATETABLE(**
-
-				**SUMMARIZECOLUMNS('Customer'\[CustomerKey],'Date'\[Year]),**
-
-				**'Date'\[IsTransaction]= TRUE(),**
-
-				**'Date'\[Year] <= MaxYear**
-
-			**),**
-
-			**"@Sales",**
-
-			**\[Sales Amount]**
-
-		**)**
-
-	**VAR Result =** 
-
-		**ADDCOLUMNS(**
-
-			**ListYear,**
-
-			**"@Index",**
-
-			**VAR \_CurrentYear = \[Year]**
-
-			**VAR \_CustomerKey = \[CustomerKey]**
-
-			**VAR \_CurrentSales = \[@Sales]**
-
-			**VAR \_LastestUnactiveMonth =** 
-
-				**MAXX(**
-
-					**FILTER(**
-
-						**ListYear,**
-
-						**\[Year] < \_CurrentYear \&\& \[CustomerKey] = \_CustomerKey \&\&**
-
-						**ISBLANK(\[@Sales])** 
-
-					**),**
-
-					**\[Year]**
-
-				**)**
-
-			**VAR \_Result =** 
-
-				**COUNTROWS(**
-
-					**FILTER(**
-
-						**ListYear,**
-
-						**\[Year] <= \_CurrentYear \&\& \[Year] > \_LastestUnactiveMonth \&\& \[CustomerKey] = \_CustomerKey \&\&**
-
-						**NOT(ISBLANK(\[@Sales]))**
-
-					**)**
-
-				**)**
-
-			**RETURN**
-
-				**\_Result**
-
-		**)**
-
-**EVALUATE Result**
-
-**ORDER BY \[CustomerKey], \[Year]**
 
