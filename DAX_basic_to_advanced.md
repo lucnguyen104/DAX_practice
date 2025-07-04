@@ -119,9 +119,6 @@ RETURN
         ISFILTERED(Customer[Continent]), SalesContributionByContinent
     )
 ```
-
-
-
 ## 9.7. Đáp án bài tập
 
 ### 12.1 - Tỷ lệ % lợi nhuận so với doanh thu
@@ -390,10 +387,7 @@ RETURN
 ```
 
 
-
-
-
-
+```dax
 Chapter 6,7,8,9 - 17.2 = 
 
 VAR ListCustomer = 
@@ -443,17 +437,17 @@ RETURN
        )
 
    )
+```
 
 
-
-Chapter 10: Các hàm bảng trong DAX
+### Chapter 10: Các hàm bảng trong DAX
 
 
 
 -- Sales của category theo từng năm 
 
 
-
+``` dax
 DEFINE 
 
 	VAR A =
@@ -1033,7 +1027,7 @@ RETURN
        Result
 
    )
-
+```
    
 
    
