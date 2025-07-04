@@ -1,4 +1,4 @@
-## Script để check các column nằm ở các bảng nào
+### Script để check các column nằm ở các bảng nào
 
 ```dax
 DEFINE
