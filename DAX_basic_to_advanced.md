@@ -1422,4 +1422,136 @@ RETURN
     // )
     SUMX(Top5Customer,[Sales Amount])
 ```
+``` dax
+Chapter 11 - Cau 2 = 
+VAR Top5Customer = 
+    CALCULATETABLE(
+        TOPN(5,VALUES(Sales[CustomerKey]),[Sales Amount],DESC),
+        ALL('Date'),
+        INDEX(
+            1,
+            CALCULATETABLE(VALUES('Date'[Year]),ALL('Date'),'Date'[IsTransaction] = TRUE()),
+            ORDERBY([Year],ASC)
+        )
+    )
+VAR ListBrand = 
+    CALCULATETABLE(
+        SUMMARIZE(Sales,'Product'[Brand]),
+        TREATAS(Top5Customer,Sales[CustomerKey])
+    )
+RETURN
+    SUMX(ListBrand,[Sales Amount])
+```
+``` dax
+Chapter 11 - Cau 3 = 
+	VAR Top3ProductByStore = 
+		GENERATE(
+			VALUES(Sales[StoreKey]),
+			VAR Top3Product = 
+				TOPN(
+					3,VALUES(Sales[ProductKey]),[Sales Amount],DESC
+				)
+			
+			VAR _Result = 
+				CALCULATETABLE(
+					ADDCOLUMNS(
+						VALUES(Sales[Currency Code]),
+						"@Sales",
+						CALCULATE(SUM(Sales[Net Sales Exchange]))
+					),
+					Top3Product
+				)
+				
+			RETURN
+				_Result
+		)
+VAR GroupData = 
+    GROUPBY(Top3ProductByStore,[Currency Code],"@Sales",SUMX(CURRENTGROUP(),[@Sales]))
+VAR Result = 
+    CONCATENATEX(
+        GroupData,
+        [Currency Code]&": "&
+        FORMAT([@Sales],"#,##0"),
+        UNICHAR(10),
+        [@Sales],DESC
+    )
+RETURN
+    Result
+```
+``` dax
+Chapter 11 - Cau 5 = 
+    SUMX(
+        TOPN(3,VALUES(Sales[CustomerKey]),[Sales Amount],DESC),
+        [Sales Amount]
+    )
+```
+``` dax
+Chapter 11 - Cau 6 = 
+VAR FirstYear = 
+    CALCULATE(
+        MIN('Date'[Year]),
+        ALL('Date'),
+        'Date'[IsTransaction] = TRUE()
+    )
 
+VAR Top5Customer = 
+    CALCULATETABLE(
+        TOPN(5,VALUES(Sales[CustomerKey]),[Sales Amount],DESC),
+        ALL('Date'),
+        'Date'[Year] = FirstYear
+    )
+
+VAR Top1Brand = 
+    CALCULATETABLE(
+        TOPN(1,VALUES('Product'[Brand]),[Sales Amount],DESC),
+        ALL('Date'),
+        'Date'[Year] = FirstYear,
+        TREATAS(Top5Customer,'Sales'[CustomerKey])
+    )
+
+RETURN
+    SUMX(Top1Brand,[Sales Amount])
+```
+``` dax
+DEFINE
+	VAR MaxYear =  CALCULATE(MAX('Date'[Year]),'Date'[IsTransaction] = TRUE())
+	VAR ListYear = 
+		ADDCOLUMNS(
+			CALCULATETABLE(
+				SUMMARIZECOLUMNS('Customer'[CustomerKey],'Date'[Year]),
+				'Date'[IsTransaction]= TRUE(),
+				'Date'[Year] <= MaxYear
+			),
+			"@Sales",
+			[Sales Amount]
+		)
+	VAR Result = 
+		ADDCOLUMNS(
+			ListYear,
+			"@Index",
+			VAR _CurrentYear = [Year]
+			VAR _CustomerKey = [CustomerKey]
+			VAR _CurrentSales = [@Sales]
+			VAR _LastestUnactiveMonth = 
+				MAXX(
+					FILTER(
+						ListYear,
+						[Year] < _CurrentYear && [CustomerKey] = _CustomerKey &&
+						ISBLANK([@Sales]) 
+					),
+					[Year]
+				)
+			VAR _Result = 
+				COUNTROWS(
+					FILTER(
+						ListYear,
+						[Year] <= _CurrentYear && [Year] > _LastestUnactiveMonth && [CustomerKey] = _CustomerKey &&
+						NOT(ISBLANK([@Sales]))
+					)
+				)
+			RETURN
+				_Result
+		)
+EVALUATE Result
+ORDER BY [CustomerKey], [Year]
+```
