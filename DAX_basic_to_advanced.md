@@ -1,4 +1,4 @@
-### Script để check các column nằm ở các bảng nào?
+## Script để check các column nằm ở các bảng nào
 
 ```dax
 DEFINE
@@ -34,13 +34,10 @@ DEFINE
                 CONTAINSSTRING([ColumnName], "Key")
         )
 
-EVALUATE
-    B
-ORDER BY
-    [ColumnName] ASC
+EVALUATE B
+ORDER BY [ColumnName] ASC
 
-
-EVALUATE
+EVALUATE 
     DISTINCT(
         SELECTCOLUMNS(
             INFO.TABLES(),
@@ -48,133 +45,80 @@ EVALUATE
             "Category", [Description]
         )
     )
-ORDER BY
-    [Category] DESC
+ORDER BY [Category] DESC
+```
 
-
-
-# Chapter 6: Các hàm tính toán trong DAX
-
-### Demo
+## Chapter 6: Các hàm tính toán trong DAX
 
 ```dax
 Countrows = COUNTROWS(Sales)
-
 DISTINCTCOUNT = DISTINCTCOUNT(Sales[CustomerKey])
+```
 
+## Chapter 9: Các hàm bỏ bộ lọc
 
-
-Chapter 9: Các hàm bỏ bộ lọc
-
-
-
+### ALLSELECTED - Example 1
+```dax
 ALLSELECTED - Example 1 = 
-
 DIVIDE(
-
-&nbsp;   \[Sales Amount],
-
-&nbsp;   CALCULATE(
-
-&nbsp;       \[Sales Amount],
-
-&nbsp;       ALLSELECTED(Customer\[Continent])
-
-&nbsp;   )
-
+    [Sales Amount],
+    CALCULATE(
+        [Sales Amount],
+        ALLSELECTED(Customer[Continent])
+    )
 )
+```
 
-
-
-Đoạn Script nâng cao và dynamic theo Column/Field
-
-
-
+### ALLSELECTED - Example 1 - Advance
+```dax
 ALLSELECTED - Example 1 - Advance = 
-
 DIVIDE(
-
-&nbsp;   \[Sales Amount],
-
-&nbsp;   CALCULATE(
-
-&nbsp;       \[Sales Amount],
-
-&nbsp;       ALLSELECTED()
-
-&nbsp;   )
-
+    [Sales Amount],
+    CALCULATE(
+        [Sales Amount],
+        ALLSELECTED()
+    )
 )
+```
 
-
-
-ALLSELECTED - Example 2 = 
-
+### ALLSELECTED - Example 2
+```dax
 VAR SalesContributionByCategory = 
-
-&nbsp;   DIVIDE(
-
-&nbsp;       \[Sales Amount],
-
-&nbsp;       CALCULATE(
-
-&nbsp;           \[Sales Amount],
-
-&nbsp;           ALLSELECTED('Product'\[Category])
-
-&nbsp;       )
-
-&nbsp;   )
-
-
+    DIVIDE(
+        [Sales Amount],
+        CALCULATE(
+            [Sales Amount],
+            ALLSELECTED('Product'[Category])
+        )
+    )
 
 VAR SalesContributionByCountry = 
-
-&nbsp;   DIVIDE(
-
-&nbsp;       \[Sales Amount],
-
-&nbsp;       CALCULATE(
-
-&nbsp;           \[Sales Amount],
-
-&nbsp;           ALLSELECTED('Product'\[Category]),
-
-&nbsp;           ALLSELECTED(Customer\[Country])
-
-&nbsp;       )
-
-&nbsp;   )
+    DIVIDE(
+        [Sales Amount],
+        CALCULATE(
+            [Sales Amount],
+            ALLSELECTED('Product'[Category]),
+            ALLSELECTED(Customer[Country])
+        )
+    )
 
 VAR SalesContributionByContinent = 
-
-&nbsp;   DIVIDE(
-
-&nbsp;       \[Sales Amount],
-
-&nbsp;       CALCULATE(
-
-&nbsp;           \[Sales Amount],
-
-&nbsp;           ALLSELECTED()
-
-&nbsp;       )
-
-&nbsp;   )
+    DIVIDE(
+        [Sales Amount],
+        CALCULATE(
+            [Sales Amount],
+            ALLSELECTED()
+        )
+    )
 
 RETURN
-
-&nbsp;   SWITCH(
-
-&nbsp;       TRUE(),
-
-&nbsp;       ISFILTERED('Product'\[Category]),SalesContributionByCategory,
-
-&nbsp;       ISFILTERED(Customer\[Country]),SalesContributionByCountry,
-
-&nbsp;       ISFILTERED(Customer\[Continent]),SalesContributionByContinent
-
-&nbsp;   )
+    SWITCH(
+        TRUE(),
+        ISFILTERED('Product'[Category]), SalesContributionByCategory,
+        ISFILTERED(Customer[Country]), SalesContributionByCountry,
+        ISFILTERED(Customer[Continent]), SalesContributionByContinent
+    )
+```
 
 
 
