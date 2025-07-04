@@ -33,31 +33,23 @@ DEFINE
                 [ColumnName] <> "" &&
                 CONTAINSSTRING([ColumnName], "Key")
         )
-	
+
+EVALUATE
+    B
+ORDER BY
+    [ColumnName] ASC
 
 
-
-EVALUATE B ORDER BY \[ColumnName] ASC
-
-
-
-EVALUATE 
-
-&nbsp;	DISTINCT(
-
-&nbsp;		SELECTCOLUMNS(
-
-&nbsp;			INFO.TABLES(),
-
-&nbsp;			"TableName",\[Name],
-
-&nbsp;			"Category",\[Description]
-
-&nbsp;		)
-
-&nbsp;	)
-
-ORDER BY \[Category] DESC
+EVALUATE
+    DISTINCT(
+        SELECTCOLUMNS(
+            INFO.TABLES(),
+            "TableName", [Name],
+            "Category", [Description]
+        )
+    )
+ORDER BY
+    [Category] DESC
 
 
 
