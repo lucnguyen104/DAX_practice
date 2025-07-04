@@ -122,129 +122,69 @@ RETURN
 
 
 
-9.7. Đáp án bài tập
+## 9.7. Đáp án bài tập
 
+### 12.1 - Tỷ lệ % lợi nhuận so với doanh thu
+```dax
+DIVIDE([#Profit], [#Revenue])
+```
 
+### 12.2 - Tỷ lệ % doanh thu so với chi phí
+```dax
+DIVIDE([#Revenue], [#Cost])
+```
 
-Chapter 6,7,8,9 - 12.1 = 
-
--- Tỷ lệ % lợi nhuận so với doanh thu 
-
-DIVIDE(\[#Profit],\[#Revenue])
-
-
-
-Chapter 6,7,8,9 - 12.2 = 
-
--- Tỷ lệ % doanh thu so với chi phí 
-
-DIVIDE(\[#Revenue],\[#Cost])
-
-
-
-Chapter 6,7,8,9 - 12.3 = 
-
--- Trung bình mỗi khách hàng mua bao nhiêu SKUs 
-
+### 12.3 - Trung bình mỗi khách hàng mua bao nhiêu SKUs
+```dax
 DIVIDE(
-
-&nbsp;   \[#Number Of Product],
-
-&nbsp;   \[#Number Of Customer]
-
+    [#Number Of Product],
+    [#Number Of Customer]
 )
+```
 
-
-
-Chapter 6,7,8,9 - 12.3 - Fix 1 = 
-
--- Tính ra cho từng customer và trung bình cái số Customer đó lại
-
+### 12.3 - Fix 1 - Trung bình số sản phẩm mỗi customer
+```dax
 AVERAGEX(
-
-&nbsp;   VALUES(Customer\[CustomerKey]),
-
-&nbsp;   \[#Number Of Product]
-
+    VALUES(Customer[CustomerKey]),
+    [#Number Of Product]
 )
+```
 
-
-
-Chapter 6,7,8,9 - 12.3 - Fix 2 = 
-
--- Tính trung bình một khách hàng mua bao nhiêu SKUs qua các năm
-
+### 12.3 - Fix 2 - Trung bình SKUs mỗi customer qua các năm
+```dax
 VAR Result =
-
-&nbsp;   CALCULATE(
-
-&nbsp;       -- Tính trung bình qua các năm
-
-&nbsp;       AVERAGEX(
-
-&nbsp;           -- Liệt kê ra các Year có Sales
-
-&nbsp;           SUMMARIZE(Sales,'Date'\[Year]),
-
-&nbsp;           \[Chapter 6,7,8,9 - 12.3 - Fix 1]
-
-&nbsp;       ),
-
-&nbsp;       -- Bỏ bộ lọc của Year
-
-&nbsp;       ALL('Date'\[Year])
-
-&nbsp;   )
+    CALCULATE(
+        AVERAGEX(
+            SUMMARIZE(Sales, 'Date'[Year]),
+            [Chapter 6,7,8,9 - 12.3 - Fix 1]
+        ),
+        ALL('Date'[Year])
+    )
 
 RETURN
+    IF([#Revenue] <> 0, Result)
+```
 
-&nbsp;   -- Loại bỏ những trường hợp Year bị blank
-
-&nbsp;   IF(\[#Revenue] <> 0,Result)
-
-&nbsp;   
-
-&nbsp;   
-
-Chapter 6,7,8,9 - 13.1 = 
-
-VAR LstCategory = VALUES('Product'\[Category])
+### 13.1 - Tính tỷ lệ doanh thu theo danh mục
+```dax
+VAR LstCategory = VALUES('Product'[Category])
 
 VAR Result = 
-
-&nbsp;   DIVIDE(
-
-&nbsp;       CALCULATE(
-
-&nbsp;           \[#Revenue],
-
-&nbsp;           ALL('Product'),
-
-&nbsp;           // VALUES('Product'\[Category])
-
-&nbsp;           'Product'\[Category] IN LstCategory
-
-&nbsp;       ),
-
-&nbsp;       CALCULATE(
-
-&nbsp;           \[#Revenue],
-
-&nbsp;           ALL('Product')
-
-&nbsp;       )
-
-&nbsp;   )
+    DIVIDE(
+        CALCULATE(
+            [#Revenue],
+            ALL('Product'),
+            'Product'[Category] IN LstCategory
+        ),
+        CALCULATE(
+            [#Revenue],
+            ALL('Product')
+        )
+    )
 
 RETURN
-
-&nbsp;   // COUNTROWS(LstCategory)
-
-&nbsp;   Result
-
-&nbsp;   
-
-&nbsp;   
+    Result
+```
 
 &nbsp;Chapter 6,7,8,9 - 14.1 = 
 
