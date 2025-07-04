@@ -1,64 +1,39 @@
-Script để check các column nằm ở các bảng nào ?
+### Script để check các column nằm ở các bảng nào?
 
+```dax
 DEFINE
+    VAR A = 
+        SELECTCOLUMNS(
+            INFO.COLUMNS(),
+            "TableID", [TableID],
+            "ColumnName", [SourceColumn],
+            "TableName",
+            VAR CurrentTableID = [TableID]
+            RETURN
+                CONCATENATEX(
+                    FILTER(
+                        INFO.TABLES(),
+                        [ID] = CurrentTableID
+                    ),
+                    [Name], ","
+                )
+        )
 
-&nbsp;	VAR A = 
-
-&nbsp;		SELECTCOLUMNS(
-
-&nbsp;			INFO.COLUMNS(),
-
-&nbsp;			"TableID",\[TableID],
-
-&nbsp;			"ColumnName",\[SourceColumn],
-
-&nbsp;			"TableName",
-
-&nbsp;			VAR CurrentTableID = \[TableID]
-
-&nbsp;			RETURN
-
-&nbsp;				CONCATENATEX(
-
-&nbsp;					FILTER(
-
-&nbsp;						INFO.TABLES(),
-
-&nbsp;						\[ID] = CurrentTableID
-
-&nbsp;					),
-
-&nbsp;					\[Name],","
-
-&nbsp;				)
-
-&nbsp;		)
-
-&nbsp;	VAR B = 
-
-&nbsp;		FILTER(
-
-&nbsp;			A,
-
-&nbsp;			VAR CurrentCol = \[ColumnName]
-
-&nbsp;			RETURN
-
-&nbsp;				COUNTROWS(
-
-&nbsp;					FILTER(
-
-&nbsp;						A,
-
-&nbsp;						\[ColumnName] = CurrentCol
-
-&nbsp;					)
-
-&nbsp;				) > 1 \&\& \[ColumnName] <> "" 
-
-&nbsp;				\&\& CONTAINSSTRING(\[ColumnName],"Key")
-
-&nbsp;		)		
+    VAR B = 
+        FILTER(
+            A,
+            VAR CurrentCol = [ColumnName]
+            RETURN
+                COUNTROWS(
+                    FILTER(
+                        A,
+                        [ColumnName] = CurrentCol
+                    )
+                ) > 1 &&
+                [ColumnName] <> "" &&
+                CONTAINSSTRING([ColumnName], "Key")
+        )
+	
 
 
 
